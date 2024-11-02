@@ -6,35 +6,28 @@ using UnityEngine.Events;
 [ExecuteInEditMode]
 public class CellElement : MonoBehaviour
 {
-    [SerializeField] private GridWorld grid;
-    [SerializeField] private Vector2Int cell;
-    [SerializeField] private bool snapping;
+    [SerializeField] protected GridWorld grid;
+    public GridWorld Grid { get { return grid; } }
+    [SerializeField] protected Vector2Int cell;
+    public Vector2Int Cell { get { return cell; } }
+    [SerializeField] protected bool snapping;
     public bool Snapping
     {
         get { return snapping; }
         set { snapping = value; }
     }
-    public GridWorld Grid { get { return grid; } }
+    [SerializeField] protected Vector3 snapOffset;
 
     // Color
     public UnityEvent<CritterColor> OnColorChanged = new();
-    [SerializeField] private CritterColor color;
+    [SerializeField] protected CritterColor color;
     public CritterColor Color {
         get { return color; }
         set { color = value; OnColorChanged.Invoke(value); }
     }
 
-    // Logic
-    [SerializeField] private Vector3 motion;
-    public Vector3 Motion
-    {
-        get { return motion; }
-        set { motion = value; }
-    }
-    [SerializeField] private bool interpolateMotion;
-
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    protected void Start()
+    protected virtual void Start()
     {
         if (grid == null)
         {
@@ -48,7 +41,7 @@ public class CellElement : MonoBehaviour
     }
 
     // Update is called once per frame
-    protected void Update()
+    protected virtual void Update()
     {
         if (grid == null)
         {
@@ -58,38 +51,22 @@ public class CellElement : MonoBehaviour
 
         if (snapping)
         {
-            transform.position = grid.CellCenter(cell);
+            transform.position = grid.CellCenter(cell) + snapOffset;
         }
         else
         {
-            cell = grid.WorldToGrid(transform.position);
+            cell = grid.WorldToGrid(transform.position - snapOffset);
         }
     }
 
-    public void HandleTimeStep()
+    public virtual void HandleTimeStep()
     {
-        // might get speed from an external source later
-        StartCoroutine(MotionCoroutine(1));
+        // nothing here so far
+        // might be useful in subclasses
     }
-    public IEnumerator MotionCoroutine(float speed)
+    public virtual void AfterTimeStep()
     {
-        Vector3 targetPosition = transform.position + motion * grid.GridScale;
-        float duration = 1 / speed;        
-        if (interpolateMotion)
-        {
-            float t = 0;
-            Vector3 initialPosition = transform.position;
-            while (t < duration)
-            {
-                t += Time.deltaTime;
-                transform.position = Vector3.Lerp(initialPosition, targetPosition, t * speed);
-                yield return new WaitForEndOfFrame();
-            }
-        }
-        else
-        {
-            yield return new WaitForSeconds(duration);
-        }
-        transform.position = targetPosition;
+        // nothing here so far
+        // might be useful in subclasses
     }
 }

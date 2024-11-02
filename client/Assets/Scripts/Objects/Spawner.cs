@@ -5,11 +5,10 @@ public class Spawner : MonoBehaviour
 {
     [SerializeField] private GameObject spawnObject;
     [SerializeField] private Vector3 spawnOffset;
-    [SerializeField] private Vector3 startMotion;
+    [SerializeField] private Vector2Int startMotion;
     [SerializeField] private float startRotation;
     [SerializeField] private float[] spawnTimes;
 
-    [SerializeField] private bool inheritMomentum;
     [SerializeField] private bool inheritColor;
 
     private CellElement cellElement;
@@ -35,7 +34,11 @@ public class Spawner : MonoBehaviour
             {
                 spawnedCellElement.Color = cellElement.Color;
             }
-            spawnedCellElement.Motion = inheritMomentum ? (cellElement.Motion + startMotion) : startMotion;
+
+            if (spawnedCellElement is CellEntity spawnedCellEntity)
+            {
+                spawnedCellEntity.Motion = startMotion;
+            }            
         }
         newObject.transform.SetPositionAndRotation(transform.position + spawnOffset, Quaternion.Euler(0, 0, startRotation));
     }
@@ -44,11 +47,11 @@ public class Spawner : MonoBehaviour
     {
         Vector3 startPosition = transform.position + spawnOffset;
         Gizmos.color = Color.yellow;
-        Gizmos.DrawLine(startPosition, startPosition + startMotion);
+        Gizmos.DrawLine(startPosition, startPosition + new Vector3(startMotion.x, startMotion.y, 0));
         float startRotationRadians = startRotation * Mathf.Deg2Rad;
         Vector3 rotatedUp = new Vector3(Mathf.Sin(startRotationRadians), Mathf.Cos(startRotationRadians), 0);
         Gizmos.color = Color.red;
-        Gizmos.DrawLine(startPosition - rotatedUp / 2, startPosition + rotatedUp / 2);
-        Gizmos.DrawWireSphere(startPosition + rotatedUp / 2, 0.3f);
+        Gizmos.DrawLine(startPosition, startPosition + rotatedUp);
+        Gizmos.DrawWireSphere(startPosition + rotatedUp, 0.3f);
     }
 }
