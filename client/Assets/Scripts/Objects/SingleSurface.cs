@@ -31,6 +31,11 @@ public class SingleSurface : MonoBehaviour
         {
             return surface;
         }
+        if (surface != null)
+        {
+            // ensure to avoid leaving trash surfaces registered
+            cellElement.Grid.DeregisterSurface(surface);
+        }
 
         float gridScale = cellElement.Grid.GridScale;
 
@@ -39,7 +44,7 @@ public class SingleSurface : MonoBehaviour
         Vector2 rotatedWallOffset = MathLib.RotateVector2(wallOffset, Rotation);
 
         Vector3 targetPosition = transform.position + (Vector3)(rotatedWallOffset * (makeWallOffsetRelative ? gridScale / 2 : 1));
-        Vector3 cellCenterPosition = cellElement.Grid.CellCenter(cellElement.Cell);
+        Vector3 cellCenterPosition = cellElement.Grid.CellCenter(cellElement.Cell + rotatedCellOffset);
         surface = new Surface(cellElement.Cell + rotatedCellOffset, rotatedNormal, targetPosition - cellCenterPosition, surfaceProperties, surfacePriority);
 
         return surface;
@@ -49,6 +54,14 @@ public class SingleSurface : MonoBehaviour
     void Update()
     {
         
+    }
+
+    private void OnDestroy()
+    {
+        if (surface != null && cellElement != null)
+        {
+            cellElement.Grid.DeregisterSurface(surface);
+        }
     }
 
     private void OnDrawGizmosSelected()

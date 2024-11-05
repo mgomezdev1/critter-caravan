@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 
 [RequireComponent (typeof(CellElement))]
@@ -7,6 +8,8 @@ public class Spawner : MonoBehaviour
     [SerializeField] private Vector3 spawnOffset;
     [SerializeField] private Vector2Int startMotion;
     [SerializeField] private float startRotation;
+    [Tooltip("Whether the spawned entity's 'right-hand side' should point away from the camera or towards it. This effectively flips the spawned object.")]
+    [SerializeField] private bool rightSidePointsAway = false;
     [SerializeField] private float[] spawnTimes;
 
     [SerializeField] private bool inheritColor;
@@ -28,6 +31,9 @@ public class Spawner : MonoBehaviour
     public void Spawn()
     {
         GameObject newObject = Instantiate(spawnObject);
+        Vector3 spawnPosition = transform.position + spawnOffset;
+        Quaternion spawnRotation = MathLib.GetRotationFromAngle(startRotation, rightSidePointsAway);
+
         if (newObject.TryGetComponent(out CellElement spawnedCellElement))
         {
             if (inheritColor)
@@ -38,20 +44,20 @@ public class Spawner : MonoBehaviour
             if (spawnedCellElement is CellEntity spawnedCellEntity)
             {
                 spawnedCellEntity.Motion = startMotion;
-            }            
+                // readjust entities so that they *stand* on the spawn point
+                spawnPosition = spawnedCellEntity.GetAdjustedStandingPosition(spawnPosition, spawnRotation * Vector3.up);
+            }
         }
-        newObject.transform.SetPositionAndRotation(transform.position + spawnOffset, Quaternion.Euler(0, 0, startRotation));
+        newObject.transform.SetPositionAndRotation(spawnPosition, spawnRotation);
     }
 
     private void OnDrawGizmosSelected()
     {
         Vector3 startPosition = transform.position + spawnOffset;
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawLine(startPosition, startPosition + new Vector3(startMotion.x, startMotion.y, 0));
-        float startRotationRadians = startRotation * Mathf.Deg2Rad;
-        Vector3 rotatedUp = new Vector3(Mathf.Sin(startRotationRadians), Mathf.Cos(startRotationRadians), 0);
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(startPosition, startPosition + rotatedUp);
-        Gizmos.DrawWireSphere(startPosition + rotatedUp, 0.3f);
+        DrawingLib.DrawCritterGizmo(startPosition, startRotation, rightSidePointsAway);
+        
+        CellElement cell = cellElement != null ? cellElement : GetComponent<CellElement>();
+        Gizmos.color = new Color(1, 0.5f, 0);
+        Gizmos.DrawLine(startPosition, startPosition + (Vector3)(Vector2)startMotion * cell.Grid.GridScale);
     }
 }

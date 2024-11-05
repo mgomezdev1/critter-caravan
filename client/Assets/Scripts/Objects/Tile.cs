@@ -70,6 +70,17 @@ public class Tile : MonoBehaviour
         
     }
 
+    private void OnDestroy()
+    {
+        if (surfaces != null && cellElement != null)
+        {
+            foreach (var surface in surfaces)
+            {
+                cellElement.Grid.DeregisterSurface(surface);
+            }
+        }
+    }
+
     private void OnDrawGizmosSelected()
     {
         if (cellElement == null)

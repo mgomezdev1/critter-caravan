@@ -7,9 +7,24 @@ using UnityEngine.Events;
 public class CellElement : MonoBehaviour
 {
     [SerializeField] protected GridWorld grid;
-    public GridWorld Grid { get { return grid; } }
+    public GridWorld Grid { 
+        get { return grid; } 
+        set { 
+            if (didStart || grid != null) { Debug.LogWarning($"Grid replaced from existing value or after start was run on cell element {gameObject.name}. Time step events will be incorrectly hooked."); }
+            grid = value; 
+        } 
+    }
     [SerializeField] protected Vector2Int cell;
-    public Vector2Int Cell { get { return cell; } }
+    public Vector2Int Cell { get
+        {
+            if (cellValueDirty)
+            {
+                cellValueDirty = false;
+                cell = grid.WorldToGrid(transform.position - snapOffset);
+            }
+            return cell;
+        }
+    }
     [SerializeField] protected bool snapping;
     public bool Snapping
     {
@@ -17,6 +32,7 @@ public class CellElement : MonoBehaviour
         set { snapping = value; }
     }
     [SerializeField] protected Vector3 snapOffset;
+    private bool cellValueDirty = true;
 
     // Color
     public UnityEvent<CritterColor> OnColorChanged = new();
@@ -34,8 +50,6 @@ public class CellElement : MonoBehaviour
             Debug.LogWarning($"Cell element {gameObject.name} has no grid reference.");
             return;
         }
-        cell = grid.WorldToGrid(transform.position);
-
         OnColorChanged.Invoke(color);
         grid.OnTimeStep.AddListener(HandleTimeStep);
     }
@@ -51,7 +65,7 @@ public class CellElement : MonoBehaviour
 
         if (snapping)
         {
-            transform.position = grid.CellCenter(cell) + snapOffset;
+            transform.position = grid.CellCenter(Cell) + snapOffset;
         }
         else
         {

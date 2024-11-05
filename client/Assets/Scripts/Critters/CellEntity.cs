@@ -67,7 +67,7 @@ public class CellEntity : CellElement
             // Use motion logic to move with physical constraints.
             motion = grid.LimitMotion(motion, this.cell, transform.up, out lastImpactedSurface);
             Vector3 targetPosition;
-            Quaternion targetRotation = transform.rotation;
+            Quaternion targetRotation;
             bool shouldFlip = false;
             if (lastImpactedSurface != null)
             {
@@ -221,8 +221,12 @@ public class CellEntity : CellElement
     public Vector3 GetAdjustedStandingPosition(Surface surf)
     {
         Vector3 feetPosition = surf.GetStandingPosition(grid);
+        return GetAdjustedStandingPosition(feetPosition, surf.normal);
+    }
+    public Vector3 GetAdjustedStandingPosition(Vector3 feetPosition, Vector3 normal)
+    {
         float feetHeight = (transform.position - floorPointRoot.position).magnitude;
-        return feetPosition + (Vector3)surf.normal * feetHeight;
+        return feetPosition + normal * feetHeight;
     }
 
     public Quaternion GetRotationFromMotion(Vector2 motion)

@@ -137,7 +137,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   wallAngle: 157.5
-  wallOffset: {x: 1.152, y: -0.234}
+  wallOffset: {x: -0.848, y: -0.234}
   makeWallOffsetRelative: 1
   cellOffset: {x: -1, y: 0}
   surfaceProperties: 0
@@ -155,7 +155,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   wallAngle: 110.25
-  wallOffset: {x: 0.234, y: -1.152}
+  wallOffset: {x: 0.234, y: 0.848}
   makeWallOffsetRelative: 1
   cellOffset: {x: 0, y: 1}
   surfaceProperties: 0

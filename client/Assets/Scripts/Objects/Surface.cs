@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class Surface
 {
-    public Vector2Int cell;
+    private Vector2Int cell;
+    public Vector2Int Cell => cell;
     public Vector2 normal;
     public Vector2 offset;
     /// <summary>
@@ -18,7 +19,8 @@ public class Surface
         SuppressFall = 1,
         Virtual = 2,
         Fatal = 4,
-        IgnoreRotationOnLanding = 8
+        IgnoreRotationOnLanding = 8,
+        Transparent = 16
     }
     public Properties properties;
 
@@ -52,6 +54,13 @@ public class Surface
     public bool HasAnyFlagOf(Properties flags)
     {
         return (properties & flags) > 0;
+    }
+
+    public void MoveSurface(Vector2Int newCell, GridWorld grid)
+    {
+        grid.DeregisterSurface(this);
+        cell = newCell;
+        grid.RegisterSurface(this);
     }
 
     public void DrawGizmos(GridWorld grid, int numLines = 7)
@@ -93,6 +102,11 @@ public class Surface
         {
             // Display virtual walls as purple rather than green
             result = new Color(0.5f, 0, 1);
+        }
+        if (flags.HasFlag(Properties.Transparent))
+        {
+            // Display transparent walls as cyan rather than green
+            result = Color.cyan;
         }
         if (flags.HasFlag(Properties.SuppressFall))
         {

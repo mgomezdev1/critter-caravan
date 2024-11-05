@@ -130,6 +130,10 @@ public static class MathLib
     {
         return Vector2FromAngle(AngleFromVector2(vector) + angle) * vector.magnitude;
     }
+    public static Vector2 RotateVector2(Vector2 vector, Quaternion rotation, bool isGridEntity = true)
+    {
+        return RotateVector2(vector, isGridEntity ? rotation.eulerAngles.x : rotation.eulerAngles.z);
+    }
 
     /// <summary>
     /// This calculates a quaternion to rotate an entity standing up to one looking in the specified angle from the right vector, on the XY plane.

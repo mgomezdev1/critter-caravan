@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -17,11 +19,23 @@ public class GridWorld : MonoBehaviour
     [SerializeField] private Vector2 margin;
 
     public UnityEvent OnTimeStep = new();
+    [HideInInspector] public UnityEvent OnSurfacesUpdated = new();
+    private bool surfacesDirty = false;
+    private bool suppressSurfaceUpdates = false;
+    public bool SuppressSurfaceUpdates { get => suppressSurfaceUpdates; set => suppressSurfaceUpdates = value; }
+    [HideInInspector] public UnityEvent OnEffectorsUpdated = new();
+    private bool effectorsDirty = false;
+    private bool suppressEffectorUpdates = false;
+    public bool SuppressEffectorsUpdates { get => suppressEffectorUpdates; set => suppressEffectorUpdates = value; }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         ReadjustCameraPosition();
+        foreach (var surf in GetBorderSurfaces())
+        {
+            RegisterSurface(surf);
+        }
     }
 
     // Update is called once per frame
@@ -30,6 +44,19 @@ public class GridWorld : MonoBehaviour
         if (!Application.isPlaying)
         {
             ReadjustCameraPosition();
+        }
+
+        if (surfacesDirty)
+        {
+            // maybe do some precalculations?
+            surfacesDirty = false;
+            OnSurfacesUpdated.Invoke();
+        }
+        if (effectorsDirty)
+        {
+            // maybe do some precalculations again
+            effectorsDirty = false;
+            OnEffectorsUpdated.Invoke();
         }
     }
 
@@ -50,20 +77,36 @@ public class GridWorld : MonoBehaviour
         );
     }
 
-
-    private Dictionary<Vector2Int, List<Surface>> surfaces = new();
+    private readonly Dictionary<Vector2Int, List<Surface>> surfaces = new();
     public void RegisterSurface(Surface surface)
     {
-        if (!surfaces.TryGetValue(surface.cell, out var surfaceList))
+        if (!surfaces.TryGetValue(surface.Cell, out var surfaceList))
         {
             surfaceList = new List<Surface>();
         }
-        Debug.Log($"Registering surface {surface}");
         // maybe check to avoid duplication
         // consider using a different internal structure to a list
         surfaceList.Add(surface);
+        if (!suppressSurfaceUpdates) surfacesDirty = true;
 
-        surfaces[surface.cell] = surfaceList;
+        // in case the surface list was just created
+        surfaces[surface.Cell] = surfaceList;
+    }
+
+    public bool DeregisterSurface(Surface surface)
+    {
+        if (surface == null) return false;
+        if (!surfaces.TryGetValue(surface.Cell, out var surfaceList))
+        {
+            return false;
+        }
+
+        if (surfaceList.Remove(surface))
+        {
+            if (!suppressSurfaceUpdates) surfacesDirty = true;
+            return true;
+        }
+        return false;
     }
 
     public Surface GetSurface(Vector2Int cell, Vector2 normal, float maxNormalDeltaDegrees = 60, Surface.Properties skipWallFlags = Surface.Properties.Virtual)
@@ -116,11 +159,58 @@ public class GridWorld : MonoBehaviour
         return motion;
     }
 
+    private readonly Dictionary<Vector2Int, List<IEffector>> effectors = new();
+    public void RegisterEffector(IEffector effector)
+    {
+        if (!effectors.TryGetValue(effector.Cell, out var effectorList))
+        {
+            effectorList = new List<IEffector>();
+        }
+        // maybe check to avoid duplication
+        // consider using a different internal structure to a list
+        effectorList.Add(effector);
+        if (!suppressEffectorUpdates) effectorsDirty = true;
+
+        // in case the effector list was just created
+        effectors[effector.Cell] = effectorList;
+    }
+
+    public bool DeregisterEffector(IEffector effector)
+    {
+        if (effector == null) return false;
+        if (!effectors.TryGetValue(effector.Cell, out var effectorList))
+        {
+            return false;
+        }
+
+        if (effectorList.Remove(effector))
+        {
+            if (!suppressEffectorUpdates) effectorsDirty = true;
+            return true;
+        }
+        return false;
+    }
+
+    public List<IEffector> GetEffectors(Vector2Int cell)
+    {
+        if (!effectors.TryGetValue(cell, out var effectorList))
+        {
+            effectors[cell] = new();
+            return effectors[cell];
+        }
+        return effectorList;
+    }
+
+    public bool IsCellValid(Vector2Int cell)
+    {
+        return cell.x < GridSize.x && cell.x >= 0 && cell.y < GridSize.y && cell.y >= 0;
+    }
+
     private void OnDrawGizmos()
     {
         // Draw general size of grid
         Gizmos.color = Color.white;
-        Vector3 gridSize3d = new Vector3(gridSize.x * gridScale, gridSize.y * gridScale, gridDepth);
+        Vector3 gridSize3d = new(gridSize.x * gridScale, gridSize.y * gridScale, gridDepth);
         Gizmos.DrawWireCube(transform.position + new Vector3(gridSize3d.x / 2, gridSize3d.y / 2, 0), gridSize3d);
     }
 
@@ -160,6 +250,14 @@ public class GridWorld : MonoBehaviour
                 surf.DrawGizmos(this);
             }
         }
+
+        if (!Application.isPlaying)
+        {
+            foreach (var surf in GetBorderSurfaces(false))
+            {
+                surf.DrawGizmos(this);
+            }
+        }
     }
 
     public void InvokeTimeStep()
@@ -175,14 +273,83 @@ public class GridWorld : MonoBehaviour
 
     public Vector3 GetCameraPositionForGridVision(Vector2Int bottomLeftCell, Vector2Int topRightCell)
     {
-        float degreesHeight = gridCamera.fieldOfView;
-        float degreesWidth = degreesHeight * gridCamera.aspect;
+        float tangentHeight = Mathf.Tan(gridCamera.fieldOfView / 2 * Mathf.Deg2Rad);
+        float tangentWidth = tangentHeight * gridCamera.aspect;
         Vector2 requiredSize = (topRightCell - bottomLeftCell + Vector2.one) * gridScale + 2 * margin;
         float requiredDistance = Mathf.Max(
-            requiredSize.y / (2 * Mathf.Tan(degreesHeight / 2 * Mathf.Deg2Rad)),
-            requiredSize.x / (2 * Mathf.Tan(degreesWidth  / 2 * Mathf.Deg2Rad))
+            requiredSize.y / (2 * tangentHeight),
+            requiredSize.x / (2 * tangentWidth)
         );
         Vector3 cameraFocusPoint = (CellCenter(bottomLeftCell) + CellCenter(topRightCell)) / 2;
         return cameraFocusPoint + Vector3.back * (requiredDistance + gridDepth / 2);
     }
+
+    List<Surface> borderSurfaceCache = null;
+    const Surface.Properties borderSurfaceProperties = Surface.Properties.Fatal | Surface.Properties.IgnoreRotationOnLanding;
+    public List<Surface> GetBorderSurfaces(bool useCache = true)
+    {
+        if (useCache && borderSurfaceCache != null)
+        {
+            return borderSurfaceCache;
+        }
+
+        borderSurfaceCache = new List<Surface>();
+
+        for (int x = 0; x < GridSize.x; x++)
+        {
+            borderSurfaceCache.Add(new Surface(
+                new Vector2Int(x, 0),
+                Vector2.up,
+                Vector2.down * (GridScale / 2),
+                borderSurfaceProperties
+            ));
+            borderSurfaceCache.Add(new Surface(
+                new Vector2Int(x, GridSize.y - 1),
+                Vector2.down,
+                Vector2.up * (GridScale / 2), 
+                borderSurfaceProperties
+            ));
+        }
+        for (int y = 0; y < GridSize.y; y++)
+        {
+            borderSurfaceCache.Add(new Surface(
+                new Vector2Int(0, y),
+                Vector2.right,
+                Vector2.left * (GridScale / 2),
+                borderSurfaceProperties
+            ));
+            borderSurfaceCache.Add(new Surface(
+                new Vector2Int(GridSize.x - 1, y),
+                Vector2.left,
+                Vector2.right * (GridScale / 2),
+                borderSurfaceProperties
+            ));
+        }
+        return borderSurfaceCache;
+    }
+
+    public void ResetSurfaces()
+    {
+        surfaces.Clear();
+    }
+    public void ResetEffectors()
+    {
+        effectors.Clear();
+    }
 }
+
+# if UNITY_EDITOR
+[UnityEditor.CustomEditor(typeof(GridWorld))]
+public class GridWorldEditor : UnityEditor.Editor
+{
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+        if (GUILayout.Button("Reset Surfaces"))
+        {
+            GridWorld script = (GridWorld)target;
+            script.ResetSurfaces();
+        }
+    }
+}
+# endif
