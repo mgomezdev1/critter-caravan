@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+#nullable enable
 [RequireComponent(typeof(CellElement))]
 public class SingleSurface : MonoBehaviour
 {
@@ -14,8 +15,9 @@ public class SingleSurface : MonoBehaviour
     [Header("Wall Properties")]
     [SerializeField] private Surface.Properties surfaceProperties = Surface.Properties.None;
     [SerializeField] private int surfacePriority = 0;
+    [SerializeField] private List<Effector> effectors = new();
 
-    private Surface surface = null;
+    private Surface? surface = null;
     private float Rotation => transform.rotation.eulerAngles.z;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -45,7 +47,10 @@ public class SingleSurface : MonoBehaviour
 
         Vector3 targetPosition = transform.position + (Vector3)(rotatedWallOffset * (makeWallOffsetRelative ? gridScale / 2 : 1));
         Vector3 cellCenterPosition = cellElement.Grid.CellCenter(cellElement.Cell + rotatedCellOffset);
-        surface = new Surface(cellElement.Cell + rotatedCellOffset, rotatedNormal, targetPosition - cellCenterPosition, surfaceProperties, surfacePriority);
+        surface = new Surface(cellElement.Cell + rotatedCellOffset, rotatedNormal, targetPosition - cellCenterPosition, surfaceProperties, surfacePriority)
+        {
+            effectors = effectors
+        };
 
         return surface;
     }

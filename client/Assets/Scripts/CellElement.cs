@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEditor;
 using UnityEngine;
@@ -8,14 +9,14 @@ public class CellElement : MonoBehaviour
 {
     [SerializeField] protected GridWorld grid;
     public GridWorld Grid { 
-        get { return grid; } 
+        get { return grid; }
         set { 
             if (didStart || grid != null) { Debug.LogWarning($"Grid replaced from existing value or after start was run on cell element {gameObject.name}. Time step events will be incorrectly hooked."); }
             grid = value; 
         } 
     }
     [SerializeField] protected Vector2Int cell;
-    public Vector2Int Cell { get
+    public virtual Vector2Int Cell { get
         {
             if (cellValueDirty)
             {
@@ -32,7 +33,7 @@ public class CellElement : MonoBehaviour
         set { snapping = value; }
     }
     [SerializeField] protected Vector3 snapOffset;
-    private bool cellValueDirty = true;
+    protected bool cellValueDirty = true;
 
     // Color
     public UnityEvent<CritterColor> OnColorChanged = new();
@@ -40,6 +41,11 @@ public class CellElement : MonoBehaviour
     public CritterColor Color {
         get { return color; }
         set { color = value; OnColorChanged.Invoke(value); }
+    }
+
+    protected virtual void Awake()
+    {
+        // do nothing
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created

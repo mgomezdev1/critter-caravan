@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
+#nullable enable
 public class Surface
 {
     private Vector2Int cell;
@@ -12,6 +14,7 @@ public class Surface
     /// Methods that search surfaces should return the eligible surface with the lowest priority value.
     /// </summary>
     public int priority;
+    public IEnumerable<IEffector> effectors = new List<Effector>();
 
     [Flags]
     public enum Properties {
@@ -39,9 +42,17 @@ public class Surface
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public float GetStandingRotation()
+    public float GetStandingAngle()
     {
         return Mathf.Rad2Deg * Mathf.Atan2(normal.y, normal.x);
+    }
+    public Quaternion GetStandingRotation(Quaternion entityRotation, bool flipOrientation = false)
+    {
+        return MathLib.GetRotationFromAngle(GetStandingAngle(), MathLib.RightSidePointsAway(entityRotation) ^ flipOrientation);
+    }
+    public Quaternion GetStandingRotation(bool rightSidePointsAway)
+    {
+        return MathLib.GetRotationFromAngle(GetStandingAngle(), rightSidePointsAway);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

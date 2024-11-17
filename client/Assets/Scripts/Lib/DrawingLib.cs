@@ -4,7 +4,7 @@ public static class DrawingLib
 {
     public static void DrawCritterGizmo(this Surface surface, GridWorld grid, bool rightSidePointsAway)
     {
-        DrawCritterGizmo(surface.GetStandingPosition(grid), surface.GetStandingRotation(), rightSidePointsAway);
+        DrawCritterGizmo(surface.GetStandingPosition(grid), surface.GetStandingAngle(), rightSidePointsAway);
     }
 
     public static void DrawCritterGizmo(Transform surfaceTransform)

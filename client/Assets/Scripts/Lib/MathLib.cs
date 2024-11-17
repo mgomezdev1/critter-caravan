@@ -156,6 +156,27 @@ public static class MathLib
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Quaternion GetRotationFromAngle(float angle, Vector3 right)
+    {
+        return GetRotationFromAngle(angle, RightSidePointsAway(right));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool RightSidePointsAway(Quaternion rotation)
+    {
+        return RightSidePointsAway(rotation * Vector3.right);
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool RightSidePointsAway(Vector3 right)
+    {
+        // dot product is positive if both vectors point in the same "direction"
+        // Vector3.forward is "away"
+        // Technically more generalized use, but given that Vector3.forward = (0,0,1)...
+        // return Vector3.Dot(right, Vector3.forward) > 0;
+        return right.z > 0; // this is equivalent
+    }
+
     /// <summary>
     /// Calculates the counter-clockwise angle in the XY plane formed by the forward vector of an entity rotated by rotation and the right vector.
     /// </summary>

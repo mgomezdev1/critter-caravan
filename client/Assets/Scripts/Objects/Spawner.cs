@@ -6,7 +6,6 @@ public class Spawner : MonoBehaviour
 {
     [SerializeField] private GameObject spawnObject;
     [SerializeField] private Vector3 spawnOffset;
-    [SerializeField] private Vector2Int startMotion;
     [SerializeField] private float startRotation;
     [Tooltip("Whether the spawned entity's 'right-hand side' should point away from the camera or towards it. This effectively flips the spawned object.")]
     [SerializeField] private bool rightSidePointsAway = false;
@@ -43,7 +42,6 @@ public class Spawner : MonoBehaviour
 
             if (spawnedCellElement is CellEntity spawnedCellEntity)
             {
-                spawnedCellEntity.Motion = startMotion;
                 // readjust entities so that they *stand* on the spawn point
                 spawnPosition = spawnedCellEntity.GetAdjustedStandingPosition(spawnPosition, spawnRotation * Vector3.up);
             }
@@ -55,9 +53,5 @@ public class Spawner : MonoBehaviour
     {
         Vector3 startPosition = transform.position + spawnOffset;
         DrawingLib.DrawCritterGizmo(startPosition, startRotation, rightSidePointsAway);
-        
-        CellElement cell = cellElement != null ? cellElement : GetComponent<CellElement>();
-        Gizmos.color = new Color(1, 0.5f, 0);
-        Gizmos.DrawLine(startPosition, startPosition + (Vector3)(Vector2)startMotion * cell.Grid.GridScale);
     }
 }

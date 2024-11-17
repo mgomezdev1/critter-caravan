@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
@@ -77,20 +78,18 @@ public class GridWorld : MonoBehaviour
         );
     }
 
-    private readonly Dictionary<Vector2Int, List<Surface>> surfaces = new();
+    private readonly Dictionary<Vector2Int, HashSet<Surface>> surfaces = new();
     public void RegisterSurface(Surface surface)
     {
         if (!surfaces.TryGetValue(surface.Cell, out var surfaceList))
         {
-            surfaceList = new List<Surface>();
+            surfaceList = new HashSet<Surface>();
+            surfaces[surface.Cell] = surfaceList;
         }
         // maybe check to avoid duplication
         // consider using a different internal structure to a list
         surfaceList.Add(surface);
         if (!suppressSurfaceUpdates) surfacesDirty = true;
-
-        // in case the surface list was just created
-        surfaces[surface.Cell] = surfaceList;
     }
 
     public bool DeregisterSurface(Surface surface)
@@ -139,18 +138,48 @@ public class GridWorld : MonoBehaviour
         return bestSurface;
     }
 
-    public Vector2Int LimitMotion(Vector2Int motion, Vector2Int cell, Vector2 up, out Surface impactedSurface, Surface.Properties skipWallFlags = Surface.Properties.Virtual)
+    public Vector2Int LimitMotion(Vector2Int motion, Vector2Int cell, Vector2 up, Surface.Properties skipWallFlags = Surface.Properties.Virtual, EffectorFlags effectorFlags = EffectorFlags.All, bool isFalling = false)
+    {
+        return LimitMotion(motion, cell, up, out _, out _, skipWallFlags, effectorFlags, isFalling);
+    }
+
+    public Vector2Int LimitMotion(Vector2Int motion, Vector2Int cell, Vector2 up, out Surface impactedSurface, Surface.Properties skipWallFlags = Surface.Properties.Virtual, EffectorFlags effectorFlags = EffectorFlags.All, bool isFalling = false)
+    {
+        return LimitMotion(motion, cell, up, out impactedSurface, out _, skipWallFlags, effectorFlags, isFalling);
+    }
+
+    public Vector2Int LimitMotion(Vector2Int motion, Vector2Int cell, Vector2 up, out List<IEffector> traversedEffectors, Surface.Properties skipWallFlags = Surface.Properties.Virtual, EffectorFlags effectorFlags = EffectorFlags.All, bool isFalling = false)
+    {
+        return LimitMotion(motion, cell, up, out _, out traversedEffectors, skipWallFlags, effectorFlags, isFalling);
+    }
+
+    public Vector2Int LimitMotion(Vector2Int motion, Vector2Int cell, Vector2 up, out Surface impactedSurface, out List<IEffector> traversedEffectors, Surface.Properties skipWallFlags = Surface.Properties.Virtual, EffectorFlags effectorFlags = EffectorFlags.All, bool isFalling = false)
     {
         Vector2Int current = cell;
         Vector2Int target = cell + motion;
         impactedSurface = null;
+        traversedEffectors = new();
         // check at each step and stop early if there's an obstacle
         while (current != cell + motion) {
             Vector2Int step = MathLib.GetOrthoStep(target - current, up);
+            bool breakMovement = false;
+            foreach (var eff in GetEffectors(current, flags: effectorFlags))
+            {
+                traversedEffectors.Add(eff);
+                if ((isFalling && eff.Flags.HasFlag(EffectorFlags.StopFall)) || eff.Flags.HasFlag(EffectorFlags.BlockMovement))
+                {
+                    breakMovement = true;
+                }
+            }
             Surface surf = GetSurface(current, -step, skipWallFlags: skipWallFlags);
             if (surf != null)
             {
                 impactedSurface = surf;
+                breakMovement = true;
+            }
+
+            if (breakMovement)
+            {
                 return current - cell;
             }
 
@@ -159,31 +188,29 @@ public class GridWorld : MonoBehaviour
         return motion;
     }
 
-    private readonly Dictionary<Vector2Int, List<IEffector>> effectors = new();
+    private readonly Dictionary<Vector2Int, HashSet<IEffector>> effectors = new();
     public void RegisterEffector(IEffector effector)
     {
-        if (!effectors.TryGetValue(effector.Cell, out var effectorList))
+        if (!effectors.TryGetValue(effector.Cell, out var cellEffectors))
         {
-            effectorList = new List<IEffector>();
+            cellEffectors = new HashSet<IEffector>();
+            effectors[effector.Cell] = cellEffectors;
         }
         // maybe check to avoid duplication
         // consider using a different internal structure to a list
-        effectorList.Add(effector);
+        cellEffectors.Add(effector);
         if (!suppressEffectorUpdates) effectorsDirty = true;
-
-        // in case the effector list was just created
-        effectors[effector.Cell] = effectorList;
     }
 
     public bool DeregisterEffector(IEffector effector)
     {
         if (effector == null) return false;
-        if (!effectors.TryGetValue(effector.Cell, out var effectorList))
+        if (!effectors.TryGetValue(effector.Cell, out var cellEffectors))
         {
             return false;
         }
 
-        if (effectorList.Remove(effector))
+        if (cellEffectors.Remove(effector))
         {
             if (!suppressEffectorUpdates) effectorsDirty = true;
             return true;
@@ -191,14 +218,20 @@ public class GridWorld : MonoBehaviour
         return false;
     }
 
-    public List<IEffector> GetEffectors(Vector2Int cell)
+    public IEnumerable<IEffector> GetEffectors(Vector2Int cell, EffectorFlags flags = EffectorFlags.All)
     {
-        if (!effectors.TryGetValue(cell, out var effectorList))
+        if (!effectors.TryGetValue(cell, out var cellEffectors))
         {
-            effectors[cell] = new();
-            return effectors[cell];
+            yield break;
         }
-        return effectorList;
+
+        foreach (var eff in cellEffectors)
+        {
+            if (eff.HasAnyFlag(flags))
+            {
+                yield return eff;    
+            }
+        }
     }
 
     public bool IsCellValid(Vector2Int cell)
