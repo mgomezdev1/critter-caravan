@@ -13,7 +13,7 @@ public class SingleSurface : MonoBehaviour
     [SerializeField] private Vector2Int cellOffset = Vector2Int.zero;
 
     [Header("Wall Properties")]
-    [SerializeField] private Surface.Properties surfaceProperties = Surface.Properties.None;
+    [SerializeField] private Surface.Flags surfaceProperties = Surface.Flags.None;
     [SerializeField] private int surfacePriority = 0;
     [SerializeField] private List<Effector> effectors = new();
 
@@ -24,7 +24,7 @@ public class SingleSurface : MonoBehaviour
     void Start()
     {
         cellElement = GetComponent<CellElement>();
-        cellElement.Grid.RegisterSurface(GetSurface());
+        cellElement.World.RegisterSurface(GetSurface());
     }
 
     public Surface GetSurface(bool useCache = true)
@@ -36,17 +36,17 @@ public class SingleSurface : MonoBehaviour
         if (surface != null)
         {
             // ensure to avoid leaving trash surfaces registered
-            cellElement.Grid.DeregisterSurface(surface);
+            cellElement.World.DeregisterSurface(surface);
         }
 
-        float gridScale = cellElement.Grid.GridScale;
+        float gridScale = cellElement.World.GridScale;
 
         Vector2Int rotatedCellOffset = MathLib.RoundVector(MathLib.RotateVector2(cellOffset, Rotation));
         Vector2 rotatedNormal = MathLib.Vector2FromAngle(Rotation + wallAngle);
         Vector2 rotatedWallOffset = MathLib.RotateVector2(wallOffset, Rotation);
 
         Vector3 targetPosition = transform.position + (Vector3)(rotatedWallOffset * (makeWallOffsetRelative ? gridScale / 2 : 1));
-        Vector3 cellCenterPosition = cellElement.Grid.CellCenter(cellElement.Cell + rotatedCellOffset);
+        Vector3 cellCenterPosition = cellElement.World.GetCellCenter(cellElement.Cell + rotatedCellOffset);
         surface = new Surface(cellElement.Cell + rotatedCellOffset, rotatedNormal, targetPosition - cellCenterPosition, surfaceProperties, surfacePriority)
         {
             effectors = effectors
@@ -65,7 +65,7 @@ public class SingleSurface : MonoBehaviour
     {
         if (surface != null && cellElement != null)
         {
-            cellElement.Grid.DeregisterSurface(surface);
+            cellElement.World.DeregisterSurface(surface);
         }
     }
 
@@ -75,6 +75,6 @@ public class SingleSurface : MonoBehaviour
         {
             cellElement = GetComponent<CellElement>();
         }
-        GetSurface(false).DrawGizmos(cellElement.Grid);
+        GetSurface(false).DrawGizmos(cellElement.World);
     }
 }

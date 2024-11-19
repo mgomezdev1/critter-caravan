@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 #nullable enable
@@ -10,63 +11,180 @@ public enum MoveFlags
     None = 0,
     Ethereal = 1 << 0,
     Fatal = 1 << 1,
+    FaceMotion = 1 << 2
+}
+
+public class Move
+{
+    public readonly Vector3 movePosition;
+    public readonly Quaternion moveRotation;
+    public readonly MoveFlags flags;
+    public readonly float verticalAnchor;
+    public readonly float maxFloorSnapAngle;
+
+    public Move? nextMove = null;
+
+    public Move(Vector3 movePosition, Quaternion moveRotation, MoveFlags flags = MoveFlags.None, float verticalAnchor = 0.0f, float maxFloorSnapAngle = 180)
+    {
+        this.movePosition = movePosition;
+        this.moveRotation = moveRotation;
+        this.flags = flags;
+        this.verticalAnchor = verticalAnchor;
+        this.maxFloorSnapAngle = maxFloorSnapAngle;
+    }
+
+    public Move(Transform transform, MoveFlags flags = MoveFlags.None, float verticalAnchor = 0f, float maxFloorSnapAngle = 180) :
+        this(transform.position, transform.rotation, flags, verticalAnchor, maxFloorSnapAngle)
+    { }
+
+    public Vector3 RelativePoint(float verticalReference, float height)
+    {
+        float heightFromPosition = (verticalReference - verticalAnchor) * height;
+        return movePosition + (moveRotation * Vector3.up) * heightFromPosition;
+    }
+
+    public Vector2Int GetCell(CellEntity entity)
+    {
+        Vector3 middlePoint = RelativePoint(0.5f, entity.Height);
+        return entity.World.GetCell(middlePoint);
+    }
+    public Vector2Int GetCell(float entityHeight, GridWorld world)
+    {
+        Vector3 middlePoint = RelativePoint(0.5f, entityHeight);
+        return world.GetCell(middlePoint);
+    }
+
+    public EntityMove? Process(CellEntity entity)
+    {
+        Vector3 position = movePosition;
+        Quaternion rotation = moveRotation;
+        MoveFlags resultFlags = flags;
+        Surface? resultSurface = null;
+        float resultAnchor = verticalAnchor;
+
+        GridWorld world = entity.World;
+
+        if (flags.HasFlag(MoveFlags.Ethereal))
+        {
+            // Ethereal motion should not try to snap to surfaces.
+            // But it will try to be standing on one if possible
+            resultSurface = world.GetSurface(world.GetCell(position), rotation * Vector2.up, maxFloorSnapAngle, entity.IntangibleWallFlags);
+        }
+        else
+        {
+            // Non-ethereal motion must handle collision detection
+            Vector2Int targetCell = GetCell(entity);
+            Vector2Int motion = targetCell - entity.Cell;
+            Vector2 normal = rotation * Vector2.up;
+            // TODO: handle effectors
+            Vector2Int limitedMotion = world.LimitMotion(motion, entity.Cell, normal, out Surface impactedSurface, entity.IntangibleWallFlags, isFalling: entity.Falling);
+
+            if (impactedSurface != null)
+            {
+                // If we can land on that surface (the slope isn't excessive), get on the surface.
+                if (Vector2.Angle(normal, impactedSurface.normal) < entity.MaxWalkSlopeAngle)
+                {
+                    resultSurface = impactedSurface;
+                }
+                else // otherwise, our motion is halted.
+                {
+                    // If we can't move at all, there is no valid move.
+                    if (limitedMotion == Vector2Int.zero)
+                    {
+                        return null;
+                    }
+                    targetCell = entity.Cell + limitedMotion;
+                    position = entity.Center + ((Vector3)(Vector2)limitedMotion * world.GridScale);
+                    resultAnchor = 0.5f;
+                }
+
+                if (impactedSurface.HasFlag(Surface.Flags.Fatal))
+                {
+                    resultFlags |= MoveFlags.Fatal;
+                }
+            }
+
+            // at this point, collision has been handled.
+            // if we haven't snapped to a surface yet, check if we should
+            resultSurface ??= world.GetSurface(targetCell, normal, maxFloorSnapAngle, entity.IntangibleWallFlags);
+            if (resultSurface != null)
+            {
+                position = resultSurface.GetStandingPosition(world);
+                rotation = resultSurface.GetStandingRotation(rotation);
+                resultAnchor = 0;
+            }
+
+            if (resultSurface != null && (resultSurface.HasFlag(Surface.Flags.Fatal) ||
+               (!resultSurface.HasFlag(Surface.Flags.SuppressFall) && entity.FallHeight > entity.MaxFallHeight)
+            ))
+            {
+                resultFlags |= MoveFlags.Fatal;
+            }
+        }
+
+        // Normalize position to work with entity
+        if (resultAnchor < 1)
+        {
+            // if resultAnchor = 1, reference is already the entity head
+            // if resultAnchor = 0, the reference needs to be shifted from the feet to the target head position
+            position = Vector3.Lerp(
+                entity.GetAdjustedStandingPosition(position, rotation * Vector3.up),
+                position,
+                resultAnchor
+            );
+            // verticalAnchor is useless from this point forward
+        }
+
+        if (flags.HasFlag(MoveFlags.FaceMotion))
+        {
+            Vector3 finalMotion = position - entity.transform.position;
+            if (resultSurface == null)
+            {
+                // if there's no surface, ensure entity is looking directly in the direction of motion
+                rotation = Quaternion.LookRotation(finalMotion, entity.transform.up);
+            }
+            else if (Vector3.Angle(entity.transform.forward, finalMotion) > 180)
+            {
+                // If entity is looking in the opposite direction of motion, flip rotation 180 degrees around its vertical axis.
+                rotation = Quaternion.LookRotation(rotation * Vector3.back, rotation * Vector3.up);
+            }
+        }
+
+        return new EntityMove(entity, position, rotation, resultSurface, resultFlags, nextMove);
+    }
+
+    public override string ToString()
+    {
+        return $"Move to {movePosition} (snap {verticalAnchor * 100}%) w/ rotation {moveRotation.eulerAngles}.";
+    }
 }
 
 public class EntityMove
 {
-    public GridWorld world;
-    public Vector3 movePosition;
-    public Quaternion moveRotation;
-    public MoveFlags moveFlags;
-    public float verticalSnapPoint = 0f;
+    public GridWorld World => entity.World;
+    public readonly Vector3 movePosition;
+    public readonly Quaternion moveRotation;
+    public readonly MoveFlags flags;
+    public readonly CellEntity entity;
+    public readonly Surface? surface;
+    public readonly bool isValid;
 
-    public Surface? surface;
-    public Surface.Properties ignoreWallFlags = Surface.Properties.None;
+    public readonly Move? nextMove = null;
 
-    public Vector2Int MoveCell => surface?.Cell ?? world.WorldToGrid(movePosition + moveRotation * Vector3.up * 0.5f);
-
-    public EntityMove(GridWorld world, Transform moveToTransform, MoveFlags flags = MoveFlags.None)
+    public Vector2Int GetCell()
     {
-        this.world = world;
-        this.movePosition = moveToTransform.position;
-        this.moveRotation = moveToTransform.rotation;
-        this.moveFlags = flags;
+        Vector3 middlePoint = movePosition + moveRotation * Vector3.up * (0.5f * entity.Height);
+        return entity.World.GetCell(middlePoint);
     }
 
-    public EntityMove(GridWorld world, Vector3 movePosition, Quaternion moveRotation, MoveFlags flags = MoveFlags.None)
+    public EntityMove(CellEntity entity, Vector3 movePosition, Quaternion moveRotation, Surface? surface, MoveFlags flags = MoveFlags.None, Move? nextMove = null)
     {
-        this.world = world;
         this.movePosition = movePosition;
         this.moveRotation = moveRotation;
-        this.moveFlags = flags;
-    }
-
-    public EntityMove(GridWorld world, Surface surface, bool rightSidePointsAway, MoveFlags flags = MoveFlags.None)
-    {
-        this.world = world;
+        this.flags = flags;
+        this.entity = entity;
         this.surface = surface;
-        this.movePosition = surface.GetStandingPosition(world);
-        this.moveRotation = surface.GetStandingRotation(rightSidePointsAway);
-        this.moveFlags = flags;
-    }
-
-    public EntityMove(GridWorld world, Surface surface, Quaternion entityRotation, MoveFlags flags = MoveFlags.None)
-    {
-        this.world = world;
-        this.surface = surface;
-        this.movePosition = surface.GetStandingPosition(world);
-        this.moveRotation = surface.GetStandingRotation(entityRotation);
-        this.moveFlags = flags;
-    }
-
-    public void InferSurface(float maxNormalDeltaDegrees = 60, Surface.Properties skipWallFlags = Surface.Properties.Virtual, bool adjustPositionAndRotation = true)
-    {
-        surface = this.world.GetSurface(MoveCell, moveRotation * Vector2.up, maxNormalDeltaDegrees, skipWallFlags);
-        if (surface != null && adjustPositionAndRotation)
-        {
-            this.movePosition = surface.GetStandingPosition(world);
-            this.moveRotation = surface.GetStandingRotation(this.moveRotation);
-        }
+        this.nextMove = nextMove;
     }
 
     public IEnumerable<IEffector> GetEffectors()
@@ -76,11 +194,11 @@ public class EntityMove
         {
             result.AddRange(surface.effectors);
         }
-        result.AddRange(world.GetEffectors(MoveCell));
+        result.AddRange(World.GetEffectors(GetCell()));
         return result;
     }
 
-    public bool Reached(CellEntity entity)
+    public bool Reached()
     {
         return Reached(entity.transform.position, entity.transform.rotation);
     }
@@ -96,46 +214,9 @@ public class EntityMove
             && Quaternion.Angle(moveRotation, rotation) < ROTATION_EPSILON;
     }
 
-    public bool IsMoveValid(Vector3 sourcePosition)
-    {
-        return IsMoveValid(world.WorldToGrid(sourcePosition));
-    }
-    public bool IsMoveValid(Vector2Int sourceCell)
-    {
-        if (!moveFlags.HasFlag(MoveFlags.Ethereal))
-        {
-            // could have issues when moving to liminar surfaces with no reference to the surface
-            Vector2Int targetCell = MoveCell;
-            Vector2Int motion = targetCell - sourceCell;
-            Vector2Int limitedMotion = world.LimitMotion(motion, targetCell, moveRotation * Vector2.up, ignoreWallFlags);
-            if (limitedMotion != motion)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public void AdjustMovePosition(CellEntity entity)
-    {
-        this.movePosition = Vector3.Lerp(
-            entity.GetAdjustedStandingPosition(this.movePosition, this.moveRotation * Vector3.up),
-            this.movePosition,
-            verticalSnapPoint
-        );
-    }
-
-    public void ReadjustForRotation(Quaternion rotation, float height)
-    {
-        float effectiveHeight = (1 - verticalSnapPoint) * height;
-        Vector3 center = movePosition + moveRotation * Vector3.up * effectiveHeight;
-        moveRotation = rotation;
-        movePosition = center + rotation * Vector3.down * effectiveHeight;
-    }
-
     public override string ToString()
     {
         string surfaceString = surface?.ToString() ?? "no surface";
-        return $"Move to {movePosition} (snap {verticalSnapPoint * 50}%) w/ rotation {moveRotation.eulerAngles}. ({surfaceString}).";
+        return $"{base.ToString()} ({surfaceString}).";
     }
 }

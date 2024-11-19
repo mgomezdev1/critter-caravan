@@ -61,7 +61,7 @@ public class GridWorld : MonoBehaviour
         }
     }
 
-    public Vector2Int WorldToGrid(Vector3 position)
+    public Vector2Int GetCell(Vector3 position)
     {
         return new Vector2Int(
             Mathf.FloorToInt(Mathf.Clamp((position.x - transform.position.x) / gridScale, 0, gridSize.x - 1)),
@@ -69,7 +69,7 @@ public class GridWorld : MonoBehaviour
         );
     }
 
-    public Vector3 CellCenter(Vector2Int cell)
+    public Vector3 GetCellCenter(Vector2Int cell)
     {
         return transform.position + new Vector3(
             (cell.x + 0.5f) * gridScale,
@@ -108,7 +108,7 @@ public class GridWorld : MonoBehaviour
         return false;
     }
 
-    public Surface GetSurface(Vector2Int cell, Vector2 normal, float maxNormalDeltaDegrees = 60, Surface.Properties skipWallFlags = Surface.Properties.Virtual)
+    public Surface GetSurface(Vector2Int cell, Vector2 normal, float maxNormalDeltaDegrees = 60, Surface.Flags skipWallFlags = Surface.Flags.Virtual)
     {
         if (!surfaces.TryGetValue(cell, out var surfaceList))
         {
@@ -138,22 +138,22 @@ public class GridWorld : MonoBehaviour
         return bestSurface;
     }
 
-    public Vector2Int LimitMotion(Vector2Int motion, Vector2Int cell, Vector2 up, Surface.Properties skipWallFlags = Surface.Properties.Virtual, EffectorFlags effectorFlags = EffectorFlags.All, bool isFalling = false)
+    public Vector2Int LimitMotion(Vector2Int motion, Vector2Int cell, Vector2 up, Surface.Flags skipWallFlags = Surface.Flags.Virtual, EffectorFlags effectorFlags = EffectorFlags.All, bool isFalling = false)
     {
         return LimitMotion(motion, cell, up, out _, out _, skipWallFlags, effectorFlags, isFalling);
     }
 
-    public Vector2Int LimitMotion(Vector2Int motion, Vector2Int cell, Vector2 up, out Surface impactedSurface, Surface.Properties skipWallFlags = Surface.Properties.Virtual, EffectorFlags effectorFlags = EffectorFlags.All, bool isFalling = false)
+    public Vector2Int LimitMotion(Vector2Int motion, Vector2Int cell, Vector2 up, out Surface impactedSurface, Surface.Flags skipWallFlags = Surface.Flags.Virtual, EffectorFlags effectorFlags = EffectorFlags.All, bool isFalling = false)
     {
         return LimitMotion(motion, cell, up, out impactedSurface, out _, skipWallFlags, effectorFlags, isFalling);
     }
 
-    public Vector2Int LimitMotion(Vector2Int motion, Vector2Int cell, Vector2 up, out List<IEffector> traversedEffectors, Surface.Properties skipWallFlags = Surface.Properties.Virtual, EffectorFlags effectorFlags = EffectorFlags.All, bool isFalling = false)
+    public Vector2Int LimitMotion(Vector2Int motion, Vector2Int cell, Vector2 up, out List<IEffector> traversedEffectors, Surface.Flags skipWallFlags = Surface.Flags.Virtual, EffectorFlags effectorFlags = EffectorFlags.All, bool isFalling = false)
     {
         return LimitMotion(motion, cell, up, out _, out traversedEffectors, skipWallFlags, effectorFlags, isFalling);
     }
 
-    public Vector2Int LimitMotion(Vector2Int motion, Vector2Int cell, Vector2 up, out Surface impactedSurface, out List<IEffector> traversedEffectors, Surface.Properties skipWallFlags = Surface.Properties.Virtual, EffectorFlags effectorFlags = EffectorFlags.All, bool isFalling = false)
+    public Vector2Int LimitMotion(Vector2Int motion, Vector2Int cell, Vector2 up, out Surface impactedSurface, out List<IEffector> traversedEffectors, Surface.Flags skipWallFlags = Surface.Flags.Virtual, EffectorFlags effectorFlags = EffectorFlags.All, bool isFalling = false)
     {
         Vector2Int current = cell;
         Vector2Int target = cell + motion;
@@ -313,12 +313,12 @@ public class GridWorld : MonoBehaviour
             requiredSize.y / (2 * tangentHeight),
             requiredSize.x / (2 * tangentWidth)
         );
-        Vector3 cameraFocusPoint = (CellCenter(bottomLeftCell) + CellCenter(topRightCell)) / 2;
+        Vector3 cameraFocusPoint = (GetCellCenter(bottomLeftCell) + GetCellCenter(topRightCell)) / 2;
         return cameraFocusPoint + Vector3.back * (requiredDistance + gridDepth / 2);
     }
 
     List<Surface> borderSurfaceCache = null;
-    const Surface.Properties borderSurfaceProperties = Surface.Properties.Fatal | Surface.Properties.IgnoreRotationOnLanding;
+    const Surface.Flags borderSurfaceProperties = Surface.Flags.Fatal | Surface.Flags.IgnoreRotationOnLanding;
     public List<Surface> GetBorderSurfaces(bool useCache = true)
     {
         if (useCache && borderSurfaceCache != null)

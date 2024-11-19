@@ -4,82 +4,42 @@ using UnityEngine;
 #nullable enable
 public class SlimeBrain : EntityBrain
 {
-    [SerializeField] private float maxWalkSlopeAngle = 60;
     [SerializeField] private Vector2Int fallVelocity = Vector2Int.down;
+    [SerializeField] private Vector2Int fallAcceleration = Vector2Int.zero;
 
     public override EntityMove GetNextMove(CellEntity entity)
     {
+        EntityMove result = GetNextMoveInternal(entity);
+        Debug.Log($"Calculated move for entity in {entity.Cell} to {result.GetCell()}.");
+        Debug.Log($"Resulting move: {result}");
+        return result;
+    }
+
+    private EntityMove GetNextMoveInternal(CellEntity entity)
+    {
         Vector2Int motion;
-        Surface? newStandSurface;
+        EntityMove? result;
         // First, check for whether the entity should fall.
         // assuming it is standing on something
-        if (entity.Falling)
+        if (entity.StandingSurface == null)
         {
-            motion = fallVelocity;
+            motion = fallVelocity + entity.FallHeight * fallAcceleration;
+            result = GetMoveFromMotion(motion, entity);
+            if (result != null) return result;
         }
         else
         {
             // We'll try to follow a point in the middle of the entity forward by a distance equaling one unit
-            Vector2Int targetCell = entity.Grid.WorldToGrid(entity.Center + entity.transform.forward * entity.Grid.GridScale);
-            motion = targetCell - entity.Cell;
+            result = GetForwardMove(entity);
+            if (result != null) return result;
+
+            // If this fails, that means we are running into something, so we'll try to turn around
+            Quaternion newRotation = Quaternion.LookRotation(-entity.transform.forward, entity.transform.up);
+            return new EntityMove(entity, entity.transform.position, newRotation, entity.StandingSurface);
         }
 
-        // Use motion logic to move with physical constraints.
-        motion = entity.Grid.LimitMotion(motion, entity.Cell, entity.transform.up, out Surface? hitSurface);
-        Vector3 targetPosition;
-        Quaternion targetRotation;
-        bool shouldFlip = false;
-        if (hitSurface != null)
-        {
-            Debug.Log($"Motion of {gameObject.name} blocked by surface {hitSurface}; set to {motion}");
-            if (!entity.Falling && Vector2.Angle(hitSurface.normal, entity.StandingSurface!.normal) > maxWalkSlopeAngle)
-            {
-                // effectively would slam into a wall. Try to turn around instead.
-                newStandSurface = entity.StandingSurface;
-                shouldFlip = true;
-            }
-            else
-            {
-                // otherwise, try to latch onto the surface.
-                newStandSurface = hitSurface;
-            }
-        }
-        else
-        {
-            // Nothing was impacted, move in the direction of motion!
-            // Then check if we would be able to stand somewhere
-            newStandSurface = entity.Grid.GetSurface(entity.Cell + motion, transform.up);
-        }
-
-        // If we have a surface to stand on, simply try to get on it
-        if (newStandSurface != null)
-        {
-            targetPosition = newStandSurface.GetStandingPosition(entity.Grid);
-            // If we didn't walk onto the surface, but rather fell onto it, check whether to correct rotation.
-            if (hitSurface == newStandSurface && hitSurface.HasFlag(Surface.Properties.IgnoreRotationOnLanding))
-            {
-                targetRotation = entity.GetRotationFromMotion(motion);
-            }
-            else
-            {
-                targetRotation = newStandSurface.GetStandingRotation(entity.transform.rotation, shouldFlip);
-            }
-        }
-        else
-        {
-            targetPosition = entity.FootPosition + new Vector3(motion.x * entity.Grid.GridScale, motion.y * entity.Grid.GridScale, 0);
-            targetRotation = entity.GetRotationFromMotion(motion);
-        }
-
-        // motion calculated, now calculate side effects
-        MoveFlags flags = GetMoveFlags(entity, newStandSurface);
-
-        EntityMove result = new(entity.Grid, targetPosition, targetRotation, flags)
-        {
-            surface = newStandSurface,
-        };
-        Debug.Log($"Calculated move for entity in {entity.Cell} to {result.MoveCell}.");
-        Debug.Log($"Resulting move: {result}");
-        return result;
+        Surface surface = entity.World.GetSurface(entity.Cell, entity.transform.rotation * Vector2.up, 60, entity.IntangibleWallFlags);
+        Debug.LogError($"GetNextMove on SlimeBrain failed to find valid motion when standing on no surface. May be due to a prior step failing to set the correct surface. Entity can currently stand on surface: {surface}");
+        return new EntityMove(entity, entity.transform.position, entity.transform.rotation, surface);
     }
 }

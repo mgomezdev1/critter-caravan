@@ -12,12 +12,27 @@ public class CellEntity : CellElement
     public Vector3 Center => (transform.position + floorPointRoot.position) / 2;
     public Vector3 FootPosition => floorPointRoot.position;
     public float Height => (transform.position - floorPointRoot.position).magnitude;
+    [SerializeField] private Surface.Flags intangibleWallFlags = Surface.Flags.Virtual;
+    public Surface.Flags IntangibleWallFlags => intangibleWallFlags;
+    [SerializeField] private float maxWalkSlopeAngle = 60;
+    public float MaxWalkSlopeAngle => maxWalkSlopeAngle;
+    [SerializeField] private int maxFallHeight = 1;
+    public int MaxFallHeight => maxFallHeight;
 
-    private readonly Queue<EntityMove> moveQueue = new();
+    private readonly Queue<Move> moveQueue = new();
     protected EntityMove? currentMove = null;
-    public EntityMove? CurrentMove { get { return currentMove; } private set { currentMove = value; adjustedMovePositionDirty = true; } }
-    public Surface? StandingSurface => CurrentMove?.surface;
-    public bool Falling => StandingSurface == null;
+    public EntityMove? CurrentMove { 
+        get { return currentMove; } 
+        private set { 
+            currentMove = value; 
+            adjustedMovePositionDirty = true;
+            StandingSurface = value?.surface;
+        } 
+    }
+    public Surface? StandingSurface { get; private set; }
+    protected int fallHeight = 0;
+    public bool Falling => fallHeight > 0;
+    public int FallHeight => fallHeight;
     float moveTimer = 0f;
 
     public override Vector2Int Cell
@@ -37,11 +52,7 @@ public class CellEntity : CellElement
     protected override void Start()
     {
         base.Start();
-        Surface surf = Grid.GetSurface(cell, transform.up);
-        CurrentMove = new EntityMove(Grid, transform)
-        {
-            surface = surf,
-        };
+        StandingSurface = World.GetSurface(cell, transform.up);
     }
 
     // Update is called once per frame
@@ -99,22 +110,31 @@ public class CellEntity : CellElement
             effector.OnEntityEnter(this);
         }
         
-        if (move.moveFlags.HasFlag(MoveFlags.Fatal))
+        if (move.flags.HasFlag(MoveFlags.Fatal))
         {
             Die();
         }
 
-        cell = move.MoveCell;
+        cell = move.GetCell();
+        if (move.surface == null)
+        {
+            fallHeight++;
+        } 
+        else
+        {
+            fallHeight = 0;
+        }
     }
 
     public override void AfterTimeStep()
     {
-        StartCoroutine(AfterTimeStepCoroutine());
+        // StartCoroutine(AfterTimeStepCoroutine());
     }
 
     public virtual IEnumerator AfterTimeStepCoroutine()
     {
-        yield return new WaitUntil(() => pendingTimeStepCoroutines <= 0);
+        // yield return new WaitUntil(() => pendingTimeStepCoroutines <= 0);
+        yield break;
     }
 
     public void OnCollisionEnter(Collision collision)
@@ -130,7 +150,7 @@ public class CellEntity : CellElement
     /// Queues an EntityMove to be executed by the entity.
     /// </summary>
     /// <returns>The position of the queued move in the entity's internal queue.</returns>
-    public int QueueMove(EntityMove move)
+    public int QueueMove(Move move)
     {
         Debug.Log($"Queuing {move} for {gameObject.name}");
         int idx = moveQueue.Count;
@@ -141,16 +161,26 @@ public class CellEntity : CellElement
     private EntityMove FetchMove()
     {
         EntityMove? result = null;
-        while (moveQueue.Count > 0)
+        
+        while (result == null || result.Reached())
         {
-            result = moveQueue.Dequeue();
-            if (result.IsMoveValid(Cell)) break;
-            result = null;
+            if (CurrentMove?.nextMove != null)
+            {
+                result = CurrentMove.nextMove.Process(this);
+                continue;
+            }
+
+            if (moveQueue.Count > 0)
+            {
+                result = moveQueue.Dequeue().Process(this);
+                continue;
+            }
+
+            break;
         }
 
         result ??= GetComponent<EntityBrain>().GetNextMove(this);
 
-        result.AdjustMovePosition(this);
         return result;
     }
 
@@ -173,13 +203,12 @@ public class CellEntity : CellElement
 
     public Vector3 GetAdjustedStandingPosition(Surface surf)
     {
-        Vector3 feetPosition = surf.GetStandingPosition(grid);
+        Vector3 feetPosition = surf.GetStandingPosition(world);
         return GetAdjustedStandingPosition(feetPosition, surf.normal);
     }
     public Vector3 GetAdjustedStandingPosition(Vector3 feetPosition, Vector3 normal)
     {
-        float feetHeight = (transform.position - floorPointRoot.position).magnitude;
-        return feetPosition + normal * feetHeight;
+        return feetPosition + normal * Height;
     }
 
     public Quaternion GetRotationFromMotion(Vector2 motion)

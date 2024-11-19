@@ -17,28 +17,29 @@ public class Surface
     public IEnumerable<IEffector> effectors = new List<Effector>();
 
     [Flags]
-    public enum Properties {
+    public enum Flags {
         None = 0,
         SuppressFall = 1,
         Virtual = 2,
         Fatal = 4,
         IgnoreRotationOnLanding = 8,
-        Transparent = 16
+        Transparent = 16,
+        All = 0x7fffffff
     }
-    public Properties properties;
+    public Flags flags;
 
-    public Surface(Vector2Int cell, Vector2 normal, Vector2? offset = null, Properties surfaceProps = Properties.None, int priority = 0)
+    public Surface(Vector2Int cell, Vector2 normal, Vector2? offset = null, Flags flags = Flags.None, int priority = 0)
     {
         this.cell = cell;
         this.normal = normal;
         this.offset = offset ?? Vector2.zero;
-        this.properties = surfaceProps;
+        this.flags = flags;
         this.priority = priority;
     }
 
     public Vector3 GetStandingPosition(GridWorld grid)
     {
-        return grid.CellCenter(cell) + (Vector3)offset;
+        return grid.GetCellCenter(cell) + (Vector3)offset;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -56,15 +57,16 @@ public class Surface
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool HasFlag(Properties flags)
+    public bool HasFlag(Flags flags)
     {
-        return properties.HasFlag(flags);
+        return this.flags.HasFlag(flags);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool HasAnyFlagOf(Properties flags)
+    public bool HasAnyFlagOf(Flags flags)
     {
-        return (properties & flags) > 0;
+        if (flags == Flags.All) return true;
+        return (this.flags & flags) > 0;
     }
 
     public void MoveSurface(Vector2Int newCell, GridWorld grid)
@@ -90,36 +92,36 @@ public class Surface
             Gizmos.DrawLine(center - side, center + side);
         }
         Gizmos.color = Color.red;
-        Gizmos.DrawLine(grid.CellCenter(cell), root);
+        Gizmos.DrawLine(grid.GetCellCenter(cell), root);
         Gizmos.color = Color.cyan;
         Gizmos.DrawLine(root, root + (Vector3)normal);
     }
 
     public Color GetColorFromFlags()
     {
-        return Surface.GetColorFromFlags(properties);
+        return Surface.GetColorFromFlags(flags);
     }
-    public static Color GetColorFromFlags(Properties flags)
+    public static Color GetColorFromFlags(Flags flags)
     {
         // Main flags that override color entirely
-        if (flags.HasFlag(Properties.Fatal))
+        if (flags.HasFlag(Flags.Fatal))
         {
             return Color.red;
         }
 
         // Complex color interaction flags
         Color result = Color.green;
-        if (flags.HasFlag(Properties.Virtual))
+        if (flags.HasFlag(Flags.Virtual))
         {
             // Display virtual walls as purple rather than green
             result = new Color(0.5f, 0, 1);
         }
-        if (flags.HasFlag(Properties.Transparent))
+        if (flags.HasFlag(Flags.Transparent))
         {
             // Display transparent walls as cyan rather than green
             result = Color.cyan;
         }
-        if (flags.HasFlag(Properties.SuppressFall))
+        if (flags.HasFlag(Flags.SuppressFall))
         {
             // darken the existing color
             result = new Color(result.r / 2, result.g / 2, result.b / 2);

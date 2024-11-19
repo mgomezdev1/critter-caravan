@@ -47,8 +47,9 @@ public class Effector : MonoBehaviour, IEffector
     [Header("Move Configuration: Effects")]
     [SerializeField] private bool keepMoveRotation = false;
     [SerializeField] private List<Transform> effectorMoves = new();
-    [SerializeField] private float verticalSnapPoint = 0f;
+    [SerializeField] private float verticalAnchor = 0f;
     [SerializeField] private MoveFlags moveFlags;
+    [SerializeField] private float moveMaxSurfaceSnapAngle = 60f;
 
     private CellElement cellElement;
     private CellElement CellElement { 
@@ -72,18 +73,35 @@ public class Effector : MonoBehaviour, IEffector
             return new EffectResult() { executed = false };
         }
 
+        Move? firstMove = null;
+        Move? lastMove = null;
         foreach (Transform t in effectorMoves)
         {
-            EntityMove move = new(CellElement.Grid, t, moveFlags)
-            {
-                verticalSnapPoint = verticalSnapPoint
-            };
-            move.InferSurface();
+            Move move;
             if (keepMoveRotation)
             {
-                move.ReadjustForRotation(entity.transform.rotation, entity.Height);
+                move = new(t.transform.position, entity.transform.rotation, moveFlags, verticalAnchor, moveMaxSurfaceSnapAngle);
+            } 
+            else
+            {
+                move = new(t, moveFlags, verticalAnchor, moveMaxSurfaceSnapAngle);
             }
-            entity.QueueMove(move);
+
+            if (lastMove == null)
+            {
+                firstMove = move;
+                lastMove = move;
+            }
+            else
+            {
+                lastMove.nextMove = move;
+                lastMove = move;
+            }
+        }
+
+        if (firstMove != null)
+        {
+            entity.QueueMove(firstMove);
         }
 
         Debug.Log($"Effector success");
@@ -95,13 +113,13 @@ public class Effector : MonoBehaviour, IEffector
         cellElement = GetComponent<CellElement>();
         if (registerToCell)
         {
-            cellElement.Grid.RegisterEffector(this);
+            cellElement.World.RegisterEffector(this);
         }
     }
 
     private void OnDestroy()
     {
-        CellElement.Grid.DeregisterEffector(this);
+        CellElement.World.DeregisterEffector(this);
     }
 
     const float ANGLE_GIZMO_LENGTH = 0.5f;
@@ -112,8 +130,8 @@ public class Effector : MonoBehaviour, IEffector
         if (registerToCell)
         {
             CellElement cellElem = CellElement;
-            GridWorld grid = cellElem.Grid;
-            Vector3 center = grid.CellCenter(cellElem.Cell);
+            GridWorld grid = cellElem.World;
+            Vector3 center = grid.GetCellCenter(cellElem.Cell);
             Gizmos.color = new Color(0.5f, 0, 1f);
             Gizmos.DrawWireCube(center, Vector3.one * (grid.GridScale * 0.9f));
         }
@@ -134,7 +152,7 @@ public class Effector : MonoBehaviour, IEffector
 
         foreach (Transform t in effectorMoves)
         {
-            DrawingLib.DrawCritterGizmo(t.position - (t.rotation * Vector3.up * verticalSnapPoint), t.rotation);
+            DrawingLib.DrawCritterGizmo(t.position - (t.rotation * Vector3.up * verticalAnchor), t.rotation);
             Gizmos.color = Color.white;
             Gizmos.DrawLine(position, t.position);
             position = t.position;

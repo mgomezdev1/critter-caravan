@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CritterMaterialColorUtil : MonoBehaviour
@@ -17,7 +18,7 @@ public class CritterMaterialColorUtil : MonoBehaviour
         {
             foreach (var mat in mesh.materials)
             {
-                mat.color = color.color;
+                mat.color = color.WithAlpha(mat.color.a);
             }
         }
     }

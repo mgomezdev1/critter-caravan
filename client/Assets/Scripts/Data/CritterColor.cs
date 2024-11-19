@@ -15,4 +15,9 @@ public class CritterColor : ScriptableObject
     {
         return colorName.GetHashCode();
     }
+
+    public Color WithAlpha(float alpha)
+    {
+        return new Color(color.r, color.g, color.b, alpha);
+    }
 }

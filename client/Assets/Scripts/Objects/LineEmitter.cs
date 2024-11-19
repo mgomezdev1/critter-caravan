@@ -8,7 +8,7 @@ public class LineEmitter : MonoBehaviour
     [SerializeField] Vector2Int startOffset = Vector2Int.zero;
     [Tooltip("The maximum number of cells the emitter line can extend for. Use a negative value to indicate unlimited.")]
     [SerializeField] int maxPropagationDistance = -1;
-    [SerializeField] Surface.Properties skipWallFlags;
+    [SerializeField] Surface.Flags skipWallFlags;
 
     [SerializeField] bool propagateColor = true;
     [SerializeField] GameObject headPrefab;
@@ -23,7 +23,7 @@ public class LineEmitter : MonoBehaviour
     {
         cellElement = GetComponent<CellElement>();
         RespawnLine();
-        cellElement.Grid.OnSurfacesUpdated.AddListener(RespawnLineSafe);
+        cellElement.World.OnSurfacesUpdated.AddListener(RespawnLineSafe);
     }
 
     // Update is called once per frame
@@ -47,9 +47,9 @@ public class LineEmitter : MonoBehaviour
 
     public void RespawnLineSafe()
     {
-        cellElement.Grid.SuppressSurfaceUpdates = true;
+        cellElement.World.SuppressSurfaceUpdates = true;
         RespawnLine();
-        cellElement.Grid.SuppressSurfaceUpdates = false;
+        cellElement.World.SuppressSurfaceUpdates = false;
     }
 
     public void RespawnLine()
@@ -71,11 +71,11 @@ public class LineEmitter : MonoBehaviour
                 bodyPrefab;
 
             GameObject newSpawnedInstance = Instantiate(prefab, transform);
-            newSpawnedInstance.transform.position = cellElement.Grid.CellCenter(cells[i]);
+            newSpawnedInstance.transform.position = cellElement.World.GetCellCenter(cells[i]);
             newSpawnedInstance.transform.rotation = spawnRotation;
             if (newSpawnedInstance.TryGetComponent(out CellElement spawnedCellElement))
             {
-                spawnedCellElement.Grid = cellElement.Grid;
+                spawnedCellElement.World = cellElement.World;
                 if (propagateColor)
                 {
                     spawnedCellElement.Color = cellElement.Color;
@@ -112,10 +112,10 @@ public class LineEmitter : MonoBehaviour
 
         while (maxDistance-- > 0)
         {
-            if (!cellElement.Grid.IsCellValid(current)) { break; }
+            if (!cellElement.World.IsCellValid(current)) { break; }
             yield return current;
             Vector2Int previous = current;
-            current += cellElement.Grid.LimitMotion(correctedPropagationVector, current, Vector2.up, out Surface impactedSurface, skipWallFlags);
+            current += cellElement.World.LimitMotion(correctedPropagationVector, current, Vector2.up, out Surface impactedSurface, skipWallFlags);
             if (impactedSurface != null || current == previous) { break; }
         }
 
@@ -133,7 +133,7 @@ public class LineEmitter : MonoBehaviour
         foreach (var cell in GetAffectedCells(MathLib.RoundVector(correctedForward)))
         {
             // Debug.Log($"Drawing line emitter spawn gizmo at {cell}");
-            Vector3 pos = cellElement.Grid.CellCenter(cell);
+            Vector3 pos = cellElement.World.GetCellCenter(cell);
             Gizmos.DrawLine(pos, pos + dirDelta);
         }
     }

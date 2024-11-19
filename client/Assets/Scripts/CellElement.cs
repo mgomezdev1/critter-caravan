@@ -7,12 +7,12 @@ using UnityEngine.Events;
 [ExecuteInEditMode]
 public class CellElement : MonoBehaviour
 {
-    [SerializeField] protected GridWorld grid;
-    public GridWorld Grid { 
-        get { return grid; }
+    [SerializeField] protected GridWorld world;
+    public GridWorld World { 
+        get { return world; }
         set { 
-            if (didStart || grid != null) { Debug.LogWarning($"Grid replaced from existing value or after start was run on cell element {gameObject.name}. Time step events will be incorrectly hooked."); }
-            grid = value; 
+            if (didStart || world != null) { Debug.LogWarning($"Grid replaced from existing value or after start was run on cell element {gameObject.name}. Time step events will be incorrectly hooked."); }
+            world = value; 
         } 
     }
     [SerializeField] protected Vector2Int cell;
@@ -21,7 +21,7 @@ public class CellElement : MonoBehaviour
             if (cellValueDirty)
             {
                 cellValueDirty = false;
-                cell = grid.WorldToGrid(transform.position - snapOffset);
+                cell = world.GetCell(transform.position - snapOffset);
             }
             return cell;
         }
@@ -51,19 +51,19 @@ public class CellElement : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     protected virtual void Start()
     {
-        if (grid == null)
+        if (world == null)
         {
             Debug.LogWarning($"Cell element {gameObject.name} has no grid reference.");
             return;
         }
         OnColorChanged.Invoke(color);
-        grid.OnTimeStep.AddListener(HandleTimeStep);
+        world.OnTimeStep.AddListener(HandleTimeStep);
     }
 
     // Update is called once per frame
     protected virtual void Update()
     {
-        if (grid == null)
+        if (world == null)
         {
             Debug.LogWarning($"Cell element {gameObject.name} has no grid reference.");
             return;
@@ -71,11 +71,11 @@ public class CellElement : MonoBehaviour
 
         if (snapping)
         {
-            transform.position = grid.CellCenter(Cell) + snapOffset;
+            transform.position = world.GetCellCenter(Cell) + snapOffset;
         }
         else
         {
-            cell = grid.WorldToGrid(transform.position - snapOffset);
+            cell = world.GetCell(transform.position - snapOffset);
         }
     }
 

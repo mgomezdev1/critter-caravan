@@ -13,12 +13,12 @@ public class Tile : MonoBehaviour
     [SerializeField] private bool rightWall = true;
 
     [Header("Wall Properties")]
-    [SerializeField] private Surface.Properties surfaceProperties = Surface.Properties.None;
+    [SerializeField] private Surface.Flags surfaceProperties = Surface.Flags.None;
     [SerializeField] private bool separateSurfaceProperties = false;
-    [SerializeField] private Surface.Properties topProperties = Surface.Properties.None;
-    [SerializeField] private Surface.Properties bottomProperties = Surface.Properties.None;
-    [SerializeField] private Surface.Properties leftProperties = Surface.Properties.None;
-    [SerializeField] private Surface.Properties rightProperties = Surface.Properties.None;
+    [SerializeField] private Surface.Flags topProperties = Surface.Flags.None;
+    [SerializeField] private Surface.Flags bottomProperties = Surface.Flags.None;
+    [SerializeField] private Surface.Flags leftProperties = Surface.Flags.None;
+    [SerializeField] private Surface.Flags rightProperties = Surface.Flags.None;
     [SerializeField] private int surfacePriority = 0;
 
     private List<Surface> surfaces = null;
@@ -29,7 +29,7 @@ public class Tile : MonoBehaviour
         cellElement = GetComponent<CellElement>();
         foreach (Surface surf in GetSurfaces())
         {
-            cellElement.Grid.RegisterSurface(surf);
+            cellElement.World.RegisterSurface(surf);
         }
     }
 
@@ -41,8 +41,8 @@ public class Tile : MonoBehaviour
         }
 
         surfaces = new List<Surface>();
-        float gridScale = cellElement.Grid.GridScale;
-        foreach (var (vec, wall, props) in new Tuple<Vector2Int, bool, Surface.Properties>[] {
+        float gridScale = cellElement.World.GridScale;
+        foreach (var (vec, wall, props) in new Tuple<Vector2Int, bool, Surface.Flags>[] {
             new(Vector2Int.up, topWall, topProperties),
             new(Vector2Int.down, bottomWall, bottomProperties),
             new(Vector2Int.right, rightWall, rightProperties),
@@ -57,7 +57,7 @@ public class Tile : MonoBehaviour
 
                 var actualProps = separateSurfaceProperties ? props : surfaceProperties;
                 Vector3 targetPosition = transform.position + (Vector3)(rotatedVector * (gridScale / 2));
-                Vector3 cellCenterPosition = cellElement.Grid.CellCenter(wallCell);
+                Vector3 cellCenterPosition = cellElement.World.GetCellCenter(wallCell);
                 surfaces.Add(new Surface(wallCell, rotatedVector, targetPosition - cellCenterPosition, actualProps, surfacePriority));
             }
         }
@@ -76,7 +76,7 @@ public class Tile : MonoBehaviour
         {
             foreach (var surface in surfaces)
             {
-                cellElement.Grid.DeregisterSurface(surface);
+                cellElement.World.DeregisterSurface(surface);
             }
         }
     }
@@ -89,7 +89,7 @@ public class Tile : MonoBehaviour
         }
         foreach (var surface in GetSurfaces(false))
         {
-            surface.DrawGizmos(cellElement.Grid);
+            surface.DrawGizmos(cellElement.World);
         }
     }
 }
