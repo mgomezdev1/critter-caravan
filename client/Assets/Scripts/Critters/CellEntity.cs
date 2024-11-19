@@ -30,7 +30,7 @@ public class CellEntity : CellElement
         } 
     }
     public Surface? StandingSurface { get; private set; }
-    protected int fallHeight = 0;
+    [SerializeField] protected int fallHeight = 0;
     public bool Falling => fallHeight > 0;
     public int FallHeight => fallHeight;
     float moveTimer = 0f;
@@ -90,10 +90,12 @@ public class CellEntity : CellElement
         pendingTimeStepCoroutines = 0;
 
         FinishMoveInstantly(CurrentMove);
-        CurrentMove = FetchMove();
-        Debug.Log($"Executing move {CurrentMove}");
-        moveTimer = 1f;
-
+        if (alive)
+        {
+            CurrentMove = FetchMove();
+            Debug.Log($"Executing move {CurrentMove}");
+            moveTimer = 1f;
+        }
         AfterTimeStep();
     }
 
@@ -176,10 +178,9 @@ public class CellEntity : CellElement
                 continue;
             }
 
+            result = GetComponent<EntityBrain>().GetNextMove(this);
             break;
         }
-
-        result ??= GetComponent<EntityBrain>().GetNextMove(this);
 
         return result;
     }
@@ -217,8 +218,10 @@ public class CellEntity : CellElement
         return MathLib.GetRotationFromAngle(MathLib.AngleFromVector2(motion) + (rightSidePointsAway ? -90 : 90), rightSidePointsAway);
     }
 
+    protected bool alive = true;
     public void Die()
     {
+        alive = false;
         Debug.Log($"{gameObject.name} died!");
     }
 

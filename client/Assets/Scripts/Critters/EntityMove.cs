@@ -53,14 +53,18 @@ public class Move
         Vector3 middlePoint = RelativePoint(0.5f, entityHeight);
         return world.GetCell(middlePoint);
     }
-
     public EntityMove? Process(CellEntity entity)
+    {
+        return Process(entity, out _);
+    }
+    public EntityMove? Process(CellEntity entity, out Surface? blockingSurface)
     {
         Vector3 position = movePosition;
         Quaternion rotation = moveRotation;
         MoveFlags resultFlags = flags;
         Surface? resultSurface = null;
         float resultAnchor = verticalAnchor;
+        blockingSurface = null;
 
         GridWorld world = entity.World;
 
@@ -77,28 +81,38 @@ public class Move
             Vector2Int motion = targetCell - entity.Cell;
             Vector2 normal = rotation * Vector2.up;
             // TODO: handle effectors
-            Vector2Int limitedMotion = world.LimitMotion(motion, entity.Cell, normal, out Surface impactedSurface, entity.IntangibleWallFlags, isFalling: entity.Falling);
+            Vector2Int limitedMotion = world.LimitMotion(motion, entity.Cell, normal, out blockingSurface, entity.IntangibleWallFlags, isFalling: entity.Falling);
 
-            if (impactedSurface != null)
+            if (blockingSurface != null)
             {
                 // If we can land on that surface (the slope isn't excessive), get on the surface.
-                if (Vector2.Angle(normal, impactedSurface.normal) < entity.MaxWalkSlopeAngle)
+                if (Vector2.Angle(normal, blockingSurface.normal) < entity.MaxWalkSlopeAngle)
                 {
-                    resultSurface = impactedSurface;
+                    resultSurface = blockingSurface;
                 }
                 else // otherwise, our motion is halted.
                 {
-                    // If we can't move at all, there is no valid move.
-                    if (limitedMotion == Vector2Int.zero)
+                    // if we are airborne, we'll land on this surface.
+                    if (entity.StandingSurface == null)
                     {
+                        resultSurface = blockingSurface;
+                        targetCell = resultSurface.Cell;
+                    }
+                    else if (limitedMotion == Vector2Int.zero)
+                    {
+                        // If we can't move at all and we are not airborne, there is no valid move.
                         return null;
                     }
-                    targetCell = entity.Cell + limitedMotion;
-                    position = entity.Center + ((Vector3)(Vector2)limitedMotion * world.GridScale);
-                    resultAnchor = 0.5f;
+                    else
+                    {
+                        // If we aren't airborne, but we still get a fraction of the motion, take that fraction
+                        position = entity.Center + ((Vector3)(Vector2)limitedMotion * world.GridScale);
+                        resultAnchor = 0.5f;
+                        targetCell = entity.Cell + limitedMotion;
+                    }
                 }
 
-                if (impactedSurface.HasFlag(Surface.Flags.Fatal))
+                if (blockingSurface.HasFlag(Surface.Flags.Fatal))
                 {
                     resultFlags |= MoveFlags.Fatal;
                 }
