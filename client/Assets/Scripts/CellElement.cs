@@ -60,6 +60,15 @@ public class CellElement : MonoBehaviour
         world.OnTimeStep.AddListener(HandleTimeStep);
     }
 
+    public void Initialize(GridWorld world)
+    {
+        if (didStart)
+        {
+            Debug.Log($"Initialization of {gameObject.name} done late.");
+        }
+        this.world = world;
+    }
+
     // Update is called once per frame
     protected virtual void Update()
     {

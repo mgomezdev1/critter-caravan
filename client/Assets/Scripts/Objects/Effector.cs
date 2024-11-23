@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+#nullable enable
 public class EffectResult
 {
     public bool executed = true;
@@ -30,11 +31,18 @@ public enum EffectorFlags
     None = 0,
     StopFall = 1,
     BlockMovement = 2,
+    RequireSurface = 4,
     All = 0x7fffffff
 }
 
-[RequireComponent(typeof(CellElement))]
-public class Effector : MonoBehaviour, IEffector
+public enum MoveRotationType
+{
+    ForceRotation = 0,
+    KeepOrientation = 1,
+    KeepRotation = 2
+}
+
+public class Effector : CellBehaviour<CellElement>, IEffector
 {
     [SerializeField] private EffectorFlags flags;
     [SerializeField] private bool registerToCell = true;
@@ -45,26 +53,23 @@ public class Effector : MonoBehaviour, IEffector
     [SerializeField] private float maxForwardAngle;
 
     [Header("Move Configuration: Effects")]
-    [SerializeField] private bool keepMoveRotation = false;
+    [SerializeField] private MoveRotationType rotationType = MoveRotationType.ForceRotation;
     [SerializeField] private List<Transform> effectorMoves = new();
     [SerializeField] private float verticalAnchor = 0f;
     [SerializeField] private MoveFlags moveFlags;
     [SerializeField] private float moveMaxSurfaceSnapAngle = 60f;
+    [SerializeField] private int movePriority = 0;
 
-    private CellElement cellElement;
-    private CellElement CellElement { 
-        get { 
-            if (cellElement == null) cellElement = GetComponent<CellElement>();
-            return cellElement;
-        }
-    }
-
-    public Vector2Int Cell => CellElement.Cell;
     public EffectorFlags Flags => flags;
 
     public EffectResult OnEntityEnter(CellEntity entity)
     {
         Debug.Log($"Running effector {this}");
+        if (flags.HasFlag(EffectorFlags.RequireSurface) && entity.StandingSurface == null)
+        {
+            Debug.Log("Effector aborted (standing surface required)");
+            return new EffectResult() { executed = false };
+        }
         Vector2 correctedForward = MathLib.RotateVector2(effectorForward, transform.rotation, false);
         float angle = Vector2.Angle(correctedForward, entity.transform.forward);
         if (angle > maxForwardAngle)
@@ -77,15 +82,14 @@ public class Effector : MonoBehaviour, IEffector
         Move? lastMove = null;
         foreach (Transform t in effectorMoves)
         {
-            Move move;
-            if (keepMoveRotation)
+            Quaternion moveRotation = rotationType switch
             {
-                move = new(t.transform.position, entity.transform.rotation, moveFlags, verticalAnchor, moveMaxSurfaceSnapAngle);
-            } 
-            else
-            {
-                move = new(t, moveFlags, verticalAnchor, moveMaxSurfaceSnapAngle);
-            }
+                MoveRotationType.ForceRotation => t.transform.rotation,
+                MoveRotationType.KeepRotation => entity.transform.rotation,
+                MoveRotationType.KeepOrientation => MathLib.MatchOrientation(t.transform.rotation, entity.transform.rotation),
+                _ => throw new NotImplementedException()
+            };
+            Move move = new(t.transform.position, moveRotation, moveFlags, verticalAnchor, moveMaxSurfaceSnapAngle, movePriority);
 
             if (lastMove == null)
             {
@@ -108,18 +112,22 @@ public class Effector : MonoBehaviour, IEffector
         return new EffectResult() { executed = true };
     }
 
+    protected override void Awake()
+    {
+        base.Awake();
+    }
+
     private void Start()
     {
-        cellElement = GetComponent<CellElement>();
         if (registerToCell)
         {
-            cellElement.World.RegisterEffector(this);
+            World.RegisterEffector(this);
         }
     }
 
     private void OnDestroy()
     {
-        CellElement.World.DeregisterEffector(this);
+        World.DeregisterEffector(this);
     }
 
     const float ANGLE_GIZMO_LENGTH = 0.5f;
@@ -129,9 +137,8 @@ public class Effector : MonoBehaviour, IEffector
         Vector3 position = transform.position;
         if (registerToCell)
         {
-            CellElement cellElem = CellElement;
-            GridWorld grid = cellElem.World;
-            Vector3 center = grid.GetCellCenter(cellElem.Cell);
+            GridWorld grid = CellComponent.World;
+            Vector3 center = grid.GetCellCenter(CellComponent.Cell);
             Gizmos.color = new Color(0.5f, 0, 1f);
             Gizmos.DrawWireCube(center, Vector3.one * (grid.GridScale * 0.9f));
         }
@@ -152,7 +159,19 @@ public class Effector : MonoBehaviour, IEffector
 
         foreach (Transform t in effectorMoves)
         {
-            DrawingLib.DrawCritterGizmo(t.position - (t.rotation * Vector3.up * verticalAnchor), t.rotation);
+            if (rotationType == MoveRotationType.ForceRotation)
+            {
+                DrawingLib.DrawCritterGizmo(t.position - (t.rotation * Vector3.up * verticalAnchor), t.rotation);
+            }
+            else if (rotationType == MoveRotationType.KeepOrientation)
+            {
+                Vector3 relativeUp = t.rotation * Vector3.up;
+                DrawingLib.DrawCritterGizmoWithoutOrientation(t.position - (relativeUp * verticalAnchor), relativeUp);
+            }
+            else if (rotationType == MoveRotationType.KeepRotation)
+            {
+                DrawingLib.DrawCritterGizmoCluster(t.position, verticalAnchor);
+            }
             Gizmos.color = Color.white;
             Gizmos.DrawLine(position, t.position);
             position = t.position;

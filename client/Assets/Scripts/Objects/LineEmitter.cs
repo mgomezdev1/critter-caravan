@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(CellElement))]
-public class LineEmitter : MonoBehaviour
+public class LineEmitter : CellBehaviour<CellElement>
 {
     [SerializeField] Vector2Int propagationVector = Vector2Int.up;
     [SerializeField] Vector2Int startOffset = Vector2Int.zero;
@@ -15,15 +14,18 @@ public class LineEmitter : MonoBehaviour
     [SerializeField] GameObject bodyPrefab;
     [SerializeField] GameObject tailPrefab;
 
-
-    private CellElement cellElement;
     private List<GameObject> spawnedObjects = new();
+
+    protected override void Awake()
+    {
+        base.Awake();
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        cellElement = GetComponent<CellElement>();
         RespawnLine();
-        cellElement.World.OnSurfacesUpdated.AddListener(RespawnLineSafe);
+        World.OnSurfacesUpdated.AddListener(RespawnLineSafe);
     }
 
     // Update is called once per frame
@@ -47,9 +49,9 @@ public class LineEmitter : MonoBehaviour
 
     public void RespawnLineSafe()
     {
-        cellElement.World.SuppressSurfaceUpdates = true;
+        World.SuppressSurfaceUpdates = true;
         RespawnLine();
-        cellElement.World.SuppressSurfaceUpdates = false;
+        World.SuppressSurfaceUpdates = false;
     }
 
     public void RespawnLine()
@@ -71,14 +73,14 @@ public class LineEmitter : MonoBehaviour
                 bodyPrefab;
 
             GameObject newSpawnedInstance = Instantiate(prefab, transform);
-            newSpawnedInstance.transform.position = cellElement.World.GetCellCenter(cells[i]);
+            newSpawnedInstance.transform.position = World.GetCellCenter(cells[i]);
             newSpawnedInstance.transform.rotation = spawnRotation;
             if (newSpawnedInstance.TryGetComponent(out CellElement spawnedCellElement))
             {
-                spawnedCellElement.World = cellElement.World;
+                spawnedCellElement.World = World;
                 if (propagateColor)
                 {
-                    spawnedCellElement.Color = cellElement.Color;
+                    spawnedCellElement.Color = CellComponent.Color;
                 }
             }
             spawnedObjects.Add(newSpawnedInstance);
@@ -105,26 +107,23 @@ public class LineEmitter : MonoBehaviour
         }
 
         Vector2Int rotatedStartOffset = MathLib.RoundVector(MathLib.RotateVector2(startOffset, transform.rotation, false));
-        Vector2Int current = cellElement.Cell + rotatedStartOffset;
+        Vector2Int current = Cell + rotatedStartOffset;
 
         int maxDistance = maxPropagationDistance;
         if (maxDistance < 0) { maxDistance = int.MaxValue; }
 
         while (maxDistance-- > 0)
         {
-            if (!cellElement.World.IsCellValid(current)) { break; }
+            if (!World.IsCellValid(current)) { break; }
             yield return current;
             Vector2Int previous = current;
-            current += cellElement.World.LimitMotion(correctedPropagationVector, current, Vector2.up, out Surface impactedSurface, skipWallFlags);
+            current += World.LimitMotion(correctedPropagationVector, current, Vector2.up, out Surface impactedSurface, skipWallFlags);
             if (impactedSurface != null || current == previous) { break; }
         }
-
     }
 
     private void OnDrawGizmosSelected()
     {
-        if (cellElement == null)
-            cellElement = GetComponent<CellElement>();
 
         Vector2 correctedForward = GetRotatedPropagationVector();
         Quaternion rotation = GetSpawnRotation(correctedForward);
@@ -133,7 +132,7 @@ public class LineEmitter : MonoBehaviour
         foreach (var cell in GetAffectedCells(MathLib.RoundVector(correctedForward)))
         {
             // Debug.Log($"Drawing line emitter spawn gizmo at {cell}");
-            Vector3 pos = cellElement.World.GetCellCenter(cell);
+            Vector3 pos = World.GetCellCenter(cell);
             Gizmos.DrawLine(pos, pos + dirDelta);
         }
     }

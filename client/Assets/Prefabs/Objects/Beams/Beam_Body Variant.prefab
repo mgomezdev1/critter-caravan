@@ -5021,6 +5021,7 @@ PrefabInstance:
     m_RemovedComponents:
     - {fileID: 5474380085747729075, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
     - {fileID: 6025073466794000404, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
+    - {fileID: 6348745474318690539, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
     m_RemovedGameObjects:
     - {fileID: 776982796946055521, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
     m_AddedGameObjects:
@@ -5059,12 +5060,12 @@ MonoBehaviour:
   registerToCell: 1
   effectorForward: {x: 0, y: 1}
   maxForwardAngle: 180
-  keepMoveRotation: 1
+  rotationType: 1
   effectorMoves:
   - {fileID: 8198939301924290236}
   verticalAnchor: 0.5
   moveFlags: 0
-  moveMaxSurfaceSnapAngle: 180
+  moveMaxSurfaceSnapAngle: 60
 --- !u!4 &9019594913618867969 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 604733987949031877, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}

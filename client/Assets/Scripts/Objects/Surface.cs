@@ -49,11 +49,11 @@ public class Surface
     }
     public Quaternion GetStandingRotation(Quaternion entityRotation, bool flipOrientation = false)
     {
-        return MathLib.GetRotationFromAngle(GetStandingAngle(), MathLib.RightSidePointsAway(entityRotation) ^ flipOrientation);
+        return MathLib.GetRotationFromUpAngle(GetStandingAngle(), MathLib.RightSidePointsAway(entityRotation) ^ flipOrientation);
     }
     public Quaternion GetStandingRotation(bool rightSidePointsAway)
     {
-        return MathLib.GetRotationFromAngle(GetStandingAngle(), rightSidePointsAway);
+        return MathLib.GetRotationFromUpAngle(GetStandingAngle(), rightSidePointsAway);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

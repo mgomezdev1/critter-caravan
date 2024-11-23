@@ -1,5 +1,7 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class WorldManager : MonoBehaviour
 {
@@ -15,7 +17,9 @@ public class WorldManager : MonoBehaviour
         }
     }
 
-    [SerializeField] private CritterColor[] colors; 
+    [SerializeField] private CritterColor[] colors;
+    [SerializeField] private UIManager ui;
+    public UIManager UI => ui;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -46,5 +50,33 @@ public class WorldManager : MonoBehaviour
             if (c.name.ToLower() == nameLower) return c;
         }
         return null;
+    }
+
+    /* ********************** *
+     *     SCORE MANAGER      *
+     * ********************** */
+    private List<ColorScore> scores = new();
+    public void ResetScores()
+    {
+        scores.Clear();
+    }
+    public ColorScore AddScore(ColorScore score)
+    {
+        for (int i = 0; i < scores.Count; i++)
+        {
+            if (scores[i].color == score.color)
+            {
+                scores[i] += score;
+                return scores[i];
+            }
+        }
+
+        scores.Add(score);
+
+        return score;
+    }
+    public List<ColorScore> GetScores()
+    {
+        return scores;
     }
 }

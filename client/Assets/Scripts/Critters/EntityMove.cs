@@ -21,20 +21,22 @@ public class Move
     public readonly MoveFlags flags;
     public readonly float verticalAnchor;
     public readonly float maxFloorSnapAngle;
+    public readonly int priority;
 
     public Move? nextMove = null;
 
-    public Move(Vector3 movePosition, Quaternion moveRotation, MoveFlags flags = MoveFlags.None, float verticalAnchor = 0.0f, float maxFloorSnapAngle = 180)
+    public Move(Vector3 movePosition, Quaternion moveRotation, MoveFlags flags = MoveFlags.None, float verticalAnchor = 0.0f, float maxFloorSnapAngle = 180, int priority = 0)
     {
         this.movePosition = movePosition;
         this.moveRotation = moveRotation;
         this.flags = flags;
         this.verticalAnchor = verticalAnchor;
         this.maxFloorSnapAngle = maxFloorSnapAngle;
+        this.priority = priority;
     }
 
-    public Move(Transform transform, MoveFlags flags = MoveFlags.None, float verticalAnchor = 0f, float maxFloorSnapAngle = 180) :
-        this(transform.position, transform.rotation, flags, verticalAnchor, maxFloorSnapAngle)
+    public Move(Transform transform, MoveFlags flags = MoveFlags.None, float verticalAnchor = 0f, float maxFloorSnapAngle = 180, int priority = 0) :
+        this(transform.position, transform.rotation, flags, verticalAnchor, maxFloorSnapAngle, priority)
     { }
 
     public Vector3 RelativePoint(float verticalReference, float height)
@@ -164,7 +166,7 @@ public class Move
             }
         }
 
-        return new EntityMove(entity, position, rotation, resultSurface, resultFlags, nextMove);
+        return new EntityMove(entity, position, rotation, resultSurface, resultFlags, nextMove, priority);
     }
 
     public override string ToString()
@@ -181,17 +183,19 @@ public class EntityMove
     public readonly MoveFlags flags;
     public readonly CellEntity entity;
     public readonly Surface? surface;
+    public readonly int priority;
     public readonly bool isValid;
 
     public readonly Move? nextMove = null;
 
     public Vector2Int GetCell()
     {
-        Vector3 middlePoint = movePosition + moveRotation * Vector3.up * (0.5f * entity.Height);
+        // Fully initialized EntityMoves have the reference point on the *head* of the entity.
+        Vector3 middlePoint = movePosition + moveRotation * Vector3.down * (0.5f * entity.Height);
         return entity.World.GetCell(middlePoint);
     }
 
-    public EntityMove(CellEntity entity, Vector3 movePosition, Quaternion moveRotation, Surface? surface, MoveFlags flags = MoveFlags.None, Move? nextMove = null)
+    public EntityMove(CellEntity entity, Vector3 movePosition, Quaternion moveRotation, Surface? surface, MoveFlags flags = MoveFlags.None, Move? nextMove = null, int priority = 0)
     {
         this.movePosition = movePosition;
         this.moveRotation = moveRotation;
@@ -199,6 +203,7 @@ public class EntityMove
         this.entity = entity;
         this.surface = surface;
         this.nextMove = nextMove;
+        this.priority = priority;
     }
 
     public IEnumerable<IEffector> GetEffectors()
@@ -231,6 +236,7 @@ public class EntityMove
     public override string ToString()
     {
         string surfaceString = surface?.ToString() ?? "no surface";
-        return $"{base.ToString()} ({surfaceString}).";
+        Vector2Int cell = GetCell();
+        return $"Move to {movePosition}, cell={cell} w/ rotation {moveRotation.eulerAngles}. ({surfaceString}).";
     }
 }

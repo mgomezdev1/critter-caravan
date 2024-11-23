@@ -5,6 +5,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 
+#nullable enable
 [ExecuteInEditMode]
 public class GridWorld : MonoBehaviour
 {
@@ -108,14 +109,76 @@ public class GridWorld : MonoBehaviour
         return false;
     }
 
-    public Surface GetSurface(Vector2Int cell, Vector2 normal, float maxNormalDeltaDegrees = 60, Surface.Flags skipWallFlags = Surface.Flags.Virtual)
+    private readonly Dictionary<Vector2Int, Obstacle> fixedObstacles = new();
+    private readonly HashSet<Obstacle> dynamicObstacles = new();
+    public void RegisterObstacle(Obstacle obstacle)
+    {
+        if (obstacle.IsFixed)
+        {
+            foreach (var cell in obstacle.GetOccupiedCells())
+            {
+                if (fixedObstacles.TryGetValue(cell, out Obstacle existingObstacle) && existingObstacle != obstacle)
+                {
+                    Debug.LogError($"Attempting to register fixed obstacle ({obstacle.gameObject.name}) on cell {cell}, occupied by {existingObstacle.gameObject.name}");
+                }
+                fixedObstacles[cell] = obstacle;
+            }
+        }
+        else
+        {
+            dynamicObstacles.Add(obstacle);
+        }
+    }
+    public bool DeregisterObstacle(Obstacle obstacle)
+    {
+        if (obstacle.IsFixed)
+        {
+            bool anythingRemoved = false;
+            foreach (var cell in obstacle.GetOccupiedCells())
+            {
+                if (fixedObstacles.TryGetValue(cell, out Obstacle existingObstacle) && existingObstacle == obstacle)
+                {
+                    fixedObstacles.Remove(cell);
+                    anythingRemoved = true;
+                }
+            }
+            return anythingRemoved;
+        }
+        else
+        {
+            return dynamicObstacles.Remove(obstacle);
+        }
+    }
+
+    public Obstacle? GetObstacle(Vector2Int cell)
+    {
+        if (fixedObstacles.TryGetValue(cell, out Obstacle obstacle))
+        {
+            return obstacle;
+        }
+
+        foreach (var dynObstacle in dynamicObstacles)
+        {
+            foreach (var obstacleCell in dynObstacle.GetOccupiedCells())
+            {
+                if (obstacleCell == cell)
+                {
+                    return dynObstacle;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public Surface? GetSurface(Vector2Int cell, Vector2 normal, float maxNormalDeltaDegrees = 60, Surface.Flags skipWallFlags = Surface.Flags.Virtual)
     {
         if (!surfaces.TryGetValue(cell, out var surfaceList))
         {
             return null;
         }
 
-        Surface bestSurface = null;
+        Surface? bestSurface = null;
         float bestAngle = maxNormalDeltaDegrees;
         int bestPriority = int.MaxValue;
         foreach (var surface in surfaceList)
@@ -143,7 +206,7 @@ public class GridWorld : MonoBehaviour
         return LimitMotion(motion, cell, up, out _, out _, skipWallFlags, effectorFlags, isFalling);
     }
 
-    public Vector2Int LimitMotion(Vector2Int motion, Vector2Int cell, Vector2 up, out Surface impactedSurface, Surface.Flags skipWallFlags = Surface.Flags.Virtual, EffectorFlags effectorFlags = EffectorFlags.All, bool isFalling = false)
+    public Vector2Int LimitMotion(Vector2Int motion, Vector2Int cell, Vector2 up, out Surface? impactedSurface, Surface.Flags skipWallFlags = Surface.Flags.Virtual, EffectorFlags effectorFlags = EffectorFlags.All, bool isFalling = false)
     {
         return LimitMotion(motion, cell, up, out impactedSurface, out _, skipWallFlags, effectorFlags, isFalling);
     }
@@ -153,7 +216,7 @@ public class GridWorld : MonoBehaviour
         return LimitMotion(motion, cell, up, out _, out traversedEffectors, skipWallFlags, effectorFlags, isFalling);
     }
 
-    public Vector2Int LimitMotion(Vector2Int motion, Vector2Int cell, Vector2 up, out Surface impactedSurface, out List<IEffector> traversedEffectors, Surface.Flags skipWallFlags = Surface.Flags.Virtual, EffectorFlags effectorFlags = EffectorFlags.All, bool isFalling = false)
+    public Vector2Int LimitMotion(Vector2Int motion, Vector2Int cell, Vector2 up, out Surface? impactedSurface, out List<IEffector> traversedEffectors, Surface.Flags skipWallFlags = Surface.Flags.Virtual, EffectorFlags effectorFlags = EffectorFlags.All, bool isFalling = false)
     {
         Vector2Int current = cell;
         Vector2Int target = cell + motion;
@@ -171,7 +234,7 @@ public class GridWorld : MonoBehaviour
                     breakMovement = true;
                 }
             }
-            Surface surf = GetSurface(current, -step, skipWallFlags: skipWallFlags);
+            Surface? surf = GetSurface(current, -step, skipWallFlags: skipWallFlags);
             if (surf != null)
             {
                 impactedSurface = surf;
@@ -293,8 +356,11 @@ public class GridWorld : MonoBehaviour
         }
     }
 
+    private int time = 0;
+    public int Time => time;
     public void InvokeTimeStep()
     {
+        time++;
         OnTimeStep.Invoke();
     }
 
@@ -317,7 +383,7 @@ public class GridWorld : MonoBehaviour
         return cameraFocusPoint + Vector3.back * (requiredDistance + gridDepth / 2);
     }
 
-    List<Surface> borderSurfaceCache = null;
+    List<Surface>? borderSurfaceCache = null;
     const Surface.Flags borderSurfaceProperties = Surface.Flags.Fatal | Surface.Flags.IgnoreRotationOnLanding;
     public List<Surface> GetBorderSurfaces(bool useCache = true)
     {

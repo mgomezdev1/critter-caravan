@@ -1,17 +1,20 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Utils;
 using UnityEngine;
 
 #nullable enable
+[RequireComponent(typeof(Animator))]
 public class CellEntity : CellElement
 {
-    // Logic
-    [SerializeField] private bool interpolateMotion;
+    // Position and Size
     [SerializeField] private Transform floorPointRoot;
     public Vector3 Center => (transform.position + floorPointRoot.position) / 2;
     public Vector3 FootPosition => floorPointRoot.position;
     public float Height => (transform.position - floorPointRoot.position).magnitude;
+    
+    // Movement properties
     [SerializeField] private Surface.Flags intangibleWallFlags = Surface.Flags.Virtual;
     public Surface.Flags IntangibleWallFlags => intangibleWallFlags;
     [SerializeField] private float maxWalkSlopeAngle = 60;
@@ -19,7 +22,8 @@ public class CellEntity : CellElement
     [SerializeField] private int maxFallHeight = 1;
     public int MaxFallHeight => maxFallHeight;
 
-    private readonly Queue<Move> moveQueue = new();
+    // Move logic
+    private readonly PriorityQueue<Move, int> moveQueue = new();
     protected EntityMove? currentMove = null;
     public EntityMove? CurrentMove { 
         get { return currentMove; } 
@@ -43,9 +47,12 @@ public class CellEntity : CellElement
         }
     }
 
+    private Animator animator;
+    public Animator Animator => animator;
     protected override void Awake()
     {
         base.Awake();
+        animator = GetComponent<Animator>();
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -53,6 +60,7 @@ public class CellEntity : CellElement
     {
         base.Start();
         StandingSurface = World.GetSurface(cell, transform.up);
+        AnimateSpawn();
     }
 
     // Update is called once per frame
@@ -61,15 +69,16 @@ public class CellEntity : CellElement
         base.Update();
         if (CurrentMove != null && moveTimer > 0f)
         {
+            Vector3 oldPosition = transform.position;
             transform.SetPositionAndRotation(
                 Vector3.Lerp(transform.position, CurrentMove.movePosition, Time.deltaTime / moveTimer),
                 Quaternion.Lerp(transform.rotation, CurrentMove.moveRotation, Time.deltaTime / moveTimer)
             );
+            AnimateVelocity((transform.position - oldPosition) / Time.deltaTime);
             moveTimer -= Time.deltaTime;
         }
     }
 
-    private int pendingTimeStepCoroutines = 0;
     private Vector3 adjustedMovePosition = Vector3.zero;
     private bool adjustedMovePositionDirty;
     public Vector3 AdjustedMovePosition {
@@ -87,10 +96,9 @@ public class CellEntity : CellElement
     public override void HandleTimeStep()
     {
         Debug.Log($"Handling time step on entity {gameObject.name}.");
-        pendingTimeStepCoroutines = 0;
 
         FinishMoveInstantly(CurrentMove);
-        if (alive)
+        if (alive && !goalReached)
         {
             CurrentMove = FetchMove();
             Debug.Log($"Executing move {CurrentMove}");
@@ -101,6 +109,11 @@ public class CellEntity : CellElement
 
     private void FinishMoveInstantly(EntityMove? move)
     {
+        if (!alive || goalReached)
+        {
+            Destroy(gameObject);
+        }
+
         if (move == null)
         {
             return;
@@ -156,7 +169,7 @@ public class CellEntity : CellElement
     {
         Debug.Log($"Queuing {move} for {gameObject.name}");
         int idx = moveQueue.Count;
-        moveQueue.Enqueue(move);
+        moveQueue.Enqueue(move, move.priority);
         return idx;
     }
 
@@ -181,6 +194,8 @@ public class CellEntity : CellElement
             result = GetComponent<EntityBrain>().GetNextMove(this);
             break;
         }
+        // Remove all effector moves that were not executed.
+        moveQueue.Clear();
 
         return result;
     }
@@ -191,7 +206,7 @@ public class CellEntity : CellElement
         // get whether right side is pointing away or towards camera
         MathLib.GetAngleFromRotation(transform.rotation, out bool rightSidePointsAway);
 
-        Quaternion result = MathLib.GetRotationFromAngle(angle, rightSidePointsAway ^ shouldFlip);
+        Quaternion result = MathLib.GetRotationFromUpAngle(angle, rightSidePointsAway ^ shouldFlip);
         return result;
     }
 
@@ -199,7 +214,7 @@ public class CellEntity : CellElement
     {
         float angle = MathLib.GetAngleFromRotation(transform.rotation, out bool rightSidePointsAway);
         
-        return MathLib.GetRotationFromAngle(angle, !rightSidePointsAway);
+        return MathLib.GetRotationFromUpAngle(angle, !rightSidePointsAway);
     }
 
     public Vector3 GetAdjustedStandingPosition(Surface surf)
@@ -215,18 +230,50 @@ public class CellEntity : CellElement
     public Quaternion GetRotationFromMotion(Vector2 motion)
     {
         bool rightSidePointsAway = MathLib.RightSidePointsAway(transform.right);
-        return MathLib.GetRotationFromAngle(MathLib.AngleFromVector2(motion) + (rightSidePointsAway ? -90 : 90), rightSidePointsAway);
+        return MathLib.GetRotationFromUpAngle(MathLib.AngleFromVector2(motion) + (rightSidePointsAway ? -90 : 90), rightSidePointsAway);
     }
 
     protected bool alive = true;
     public void Die()
     {
         alive = false;
+        AnimateDeath();
         Debug.Log($"{gameObject.name} died!");
+    }
+
+    protected bool goalReached = false;
+    public void ReachGoal()
+    {
+        goalReached = true;
+        AnimateCampReached();
     }
 
     public void OnDrawGizmosSelected()
     {
         DrawingLib.DrawCritterGizmo(floorPointRoot);
+    }
+
+    /* ****************************** *
+     *        ANIMATION LOGIC         *
+     * ****************************** */
+    public void AnimateVelocity(Vector3 velocity)
+    {
+        Quaternion worldToLocalRotation = Quaternion.Inverse(transform.rotation);
+        Vector3 localVelocity = worldToLocalRotation * velocity;
+        animator.SetFloat("v_rightward", localVelocity.x);
+        animator.SetFloat("v_upward", localVelocity.y);
+        animator.SetFloat("v_forward", localVelocity.z);
+    }
+    public void AnimateSpawn()
+    {
+        animator.SetTrigger("spawn");
+    }
+    public void AnimateDeath()
+    {
+        animator.SetTrigger("death");
+    }
+    public void AnimateCampReached()
+    {
+        animator.SetTrigger("camp");
     }
 }

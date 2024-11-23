@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using static UnityEngine.EventSystems.EventTrigger;
 
 public static class MathLib
 {
@@ -141,25 +142,36 @@ public static class MathLib
     /// <param name="angle">The counter-clockwise angle to form with the right vector in the XY plane.</param>
     /// <param name="rightSidePointsAway">Whether the right-hand side of the entity should point towards the camera (negative Z) or away (positive Z)</param>
     /// <returns>A valid quaternion rotation matching the specifications above.</returns>
-    public static Quaternion GetRotationFromAngle(float angle, bool rightSidePointsAway = false)
+    public static Quaternion GetRotationFromUpAngle(float angle, bool rightSidePointsAway)
     {
-        if (rightSidePointsAway)
-        {
-            // "up" is a rotation of 0, again.
-            return Quaternion.Euler(angle - 90, 270, 0);
-        }
-        else
-        {
-            // "up" is a rotation of 0. So we shift the angular space by 90 degrees.
-            // also we need to change the interpretation from clockwise to counter-clockwise.
-            return Quaternion.Euler(-angle + 90, 90, 0);
-        }
+        Vector2 up = Vector2FromAngle(angle);
+        Vector2 forward = GetForwardFromUp(up, rightSidePointsAway);
+        return Quaternion.LookRotation(forward, up);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Quaternion GetRotationFromAngle(float angle, Vector3 right)
+    public static Quaternion GetRotationFromUpAngle(float angle, Vector3 right)
     {
-        return GetRotationFromAngle(angle, RightSidePointsAway(right));
+        return GetRotationFromUpAngle(angle, RightSidePointsAway(right));
+    }
+    public static Quaternion GetRotationFromForwardAngle(float angle, bool rightSidePointsAway)
+    {
+        Vector2 forward = Vector2FromAngle(angle);
+        Vector2 up = GetUpFromForward(forward, rightSidePointsAway);
+        return Quaternion.LookRotation(forward, up);
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Quaternion GetRotationFromForwardAngle(float angle, Vector3 right)
+    {
+        return GetRotationFromForwardAngle(angle, RightSidePointsAway(right));
+    }
+    public static Vector2 GetForwardFromUp(Vector2 up, bool rightSidePointsAway)
+    {
+        return rightSidePointsAway ? new Vector2(-up.y, up.x) : new Vector2(up.y, -up.x);
+    }
+    public static Vector2 GetUpFromForward(Vector2 forward, bool rightSidePointsAway)
+    {
+        return rightSidePointsAway ? new Vector2(forward.y, -forward.x) : new Vector2(-forward.y, forward.x);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -198,5 +210,13 @@ public static class MathLib
             rightSidePointsAway = false;
             return -angles.x + 90;
         }
+    }
+
+    internal static Quaternion MatchOrientation(Quaternion rotation, Quaternion orientationReference)
+    {
+        bool rightSidePointsAway = MathLib.RightSidePointsAway(orientationReference);
+        Vector3 up = rotation * Vector3.up;
+        Vector3 forward = GetForwardFromUp(up, rightSidePointsAway);
+        return Quaternion.LookRotation(forward, up);
     }
 }

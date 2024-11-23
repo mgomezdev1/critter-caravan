@@ -2,11 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(CellElement))]
-public class Tile : MonoBehaviour
+public class Tile : CellBehaviour<CellElement>
 {
-    private CellElement cellElement;
-
     [SerializeField] private bool topWall = true;
     [SerializeField] private bool bottomWall = true;
     [SerializeField] private bool leftWall = true;
@@ -23,13 +20,17 @@ public class Tile : MonoBehaviour
 
     private List<Surface> surfaces = null;
 
+    protected override void Awake()
+    {
+        base.Awake();
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        cellElement = GetComponent<CellElement>();
         foreach (Surface surf in GetSurfaces())
         {
-            cellElement.World.RegisterSurface(surf);
+            World.RegisterSurface(surf);
         }
     }
 
@@ -41,7 +42,7 @@ public class Tile : MonoBehaviour
         }
 
         surfaces = new List<Surface>();
-        float gridScale = cellElement.World.GridScale;
+        float gridScale = World.GridScale;
         foreach (var (vec, wall, props) in new Tuple<Vector2Int, bool, Surface.Flags>[] {
             new(Vector2Int.up, topWall, topProperties),
             new(Vector2Int.down, bottomWall, bottomProperties),
@@ -53,11 +54,11 @@ public class Tile : MonoBehaviour
             {
                 Vector2 rotatedVector = MathLib.Vector2FromAngle(MathLib.AngleFromVector2(vec) + transform.rotation.eulerAngles.z);
                 Vector2Int rotatedOffset = MathLib.RoundUnitVector(rotatedVector);
-                Vector2Int wallCell = cellElement.Cell + rotatedOffset;
+                Vector2Int wallCell = Cell + rotatedOffset;
 
                 var actualProps = separateSurfaceProperties ? props : surfaceProperties;
                 Vector3 targetPosition = transform.position + (Vector3)(rotatedVector * (gridScale / 2));
-                Vector3 cellCenterPosition = cellElement.World.GetCellCenter(wallCell);
+                Vector3 cellCenterPosition = World.GetCellCenter(wallCell);
                 surfaces.Add(new Surface(wallCell, rotatedVector, targetPosition - cellCenterPosition, actualProps, surfacePriority));
             }
         }
@@ -72,24 +73,20 @@ public class Tile : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (surfaces != null && cellElement != null)
+        if (surfaces != null && CellComponent != null)
         {
             foreach (var surface in surfaces)
             {
-                cellElement.World.DeregisterSurface(surface);
+                CellComponent.World.DeregisterSurface(surface);
             }
         }
     }
 
     private void OnDrawGizmosSelected()
     {
-        if (cellElement == null)
-        {
-            cellElement = GetComponent<CellElement>();
-        }
         foreach (var surface in GetSurfaces(false))
         {
-            surface.DrawGizmos(cellElement.World);
+            surface.DrawGizmos(World);
         }
     }
 }

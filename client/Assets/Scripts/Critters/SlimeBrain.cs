@@ -38,7 +38,7 @@ public class SlimeBrain : EntityBrain
             return new EntityMove(entity, entity.transform.position, newRotation, entity.StandingSurface);
         }
 
-        Surface surface = entity.World.GetSurface(entity.Cell, entity.transform.rotation * Vector2.up, 60, entity.IntangibleWallFlags);
+        Surface? surface = entity.World.GetSurface(entity.Cell, entity.transform.rotation * Vector2.up, 60, entity.IntangibleWallFlags);
         Debug.LogError($"GetNextMove on SlimeBrain failed to find valid motion when standing on no surface. May be due to a prior step failing to set the correct surface. Entity can currently stand on surface: {surface}");
         return new EntityMove(entity, entity.transform.position, entity.transform.rotation, surface);
     }
