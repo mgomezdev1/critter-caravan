@@ -57,9 +57,9 @@ public class Move
     }
     public EntityMove? Process(CellEntity entity)
     {
-        return Process(entity, out _);
+        return Process(entity, out _, out _);
     }
-    public EntityMove? Process(CellEntity entity, out Surface? blockingSurface)
+    public EntityMove? Process(CellEntity entity, out Surface? blockingSurface, out List<IEffector> blockingEffectors)
     {
         Vector3 position = movePosition;
         Quaternion rotation = moveRotation;
@@ -67,6 +67,9 @@ public class Move
         Surface? resultSurface = null;
         float resultAnchor = verticalAnchor;
         blockingSurface = null;
+        blockingEffectors = new();
+
+        bool interrupted = false;
 
         GridWorld world = entity.World;
 
@@ -82,8 +85,17 @@ public class Move
             Vector2Int targetCell = GetCell(entity);
             Vector2Int motion = targetCell - entity.Cell;
             Vector2 normal = rotation * Vector2.up;
-            // TODO: handle effectors
-            Vector2Int limitedMotion = world.LimitMotion(motion, entity.Cell, normal, out blockingSurface, entity.IntangibleWallFlags, isFalling: entity.Falling);
+
+            EffectorFlags blockingEffectorFlags = EffectorFlags.BlockMovement;
+            if (entity.Falling) blockingEffectorFlags |= EffectorFlags.StopFall;
+            Vector2Int limitedMotion = world.LimitMotion(motion, entity.Cell, normal, out blockingSurface, out blockingEffectors, entity.IntangibleWallFlags, blockingEffectorFlags, isFalling: entity.Falling);
+
+            // If we find anything affecting our motion, set the interrupted flag
+            // This will kill any subsequent motions that rely on this one
+            if (motion != limitedMotion ||
+                blockingSurface != null ||
+                blockingEffectors.Count > 0
+            ) { interrupted = true; }
 
             if (blockingSurface != null)
             {
@@ -166,7 +178,8 @@ public class Move
             }
         }
 
-        return new EntityMove(entity, position, rotation, resultSurface, resultFlags, nextMove, priority);
+        Move? nextMoveResult = interrupted ? null : nextMove;
+        return new EntityMove(entity, position, rotation, resultSurface, resultFlags, nextMoveResult, priority);
     }
 
     public override string ToString()

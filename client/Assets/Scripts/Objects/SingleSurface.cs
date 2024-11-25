@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 #nullable enable
-public class SingleSurface : CellBehaviour<CellElement>
+public class SingleSurface : CellBehaviour<CellElement>, IMovable
 {
     [SerializeField] [Range(0, 360)] private float wallAngle;
     [SerializeField] private Vector2 wallOffset = Vector2.zero;
@@ -16,7 +16,6 @@ public class SingleSurface : CellBehaviour<CellElement>
     [SerializeField] private List<Effector> effectors = new();
 
     private Surface? surface = null;
-    private float Rotation => transform.rotation.eulerAngles.z;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -38,13 +37,12 @@ public class SingleSurface : CellBehaviour<CellElement>
 
         float gridScale = World.GridScale;
 
-        Vector2Int rotatedCellOffset = MathLib.RoundVector(MathLib.RotateVector2(cellOffset, Rotation));
-        Vector2 rotatedNormal = MathLib.Vector2FromAngle(Rotation + wallAngle);
-        Vector2 rotatedWallOffset = MathLib.RotateVector2(wallOffset, Rotation);
+        Vector2Int rotatedCellOffset = MathLib.RoundVector(transform.rotation * (Vector2)cellOffset);
+        Vector2 rotatedNormal = transform.rotation * MathLib.Vector2FromAngle(wallAngle);
+        Vector2 rotatedWallOffset = transform.rotation * wallOffset;
+        Vector2Int finalCell = Cell + rotatedCellOffset;
 
-        Vector3 targetPosition = transform.position + (Vector3)(rotatedWallOffset * (makeWallOffsetRelative ? gridScale / 2 : 1));
-        Vector3 cellCenterPosition = World.GetCellCenter(Cell + rotatedCellOffset);
-        surface = new Surface(Cell + rotatedCellOffset, rotatedNormal, targetPosition - cellCenterPosition, surfaceProperties, surfacePriority)
+        surface = new Surface(finalCell, rotatedNormal, ProcessOffset(finalCell, rotatedWallOffset), surfaceProperties, surfacePriority)
         {
             effectors = effectors
         };
@@ -68,6 +66,32 @@ public class SingleSurface : CellBehaviour<CellElement>
 
     private void OnDrawGizmosSelected()
     {
-        GetSurface(false).DrawGizmos(World);
+        if (!Application.isPlaying)
+        {
+            GetSurface(false).DrawGizmos(World);
+        }
+    }
+
+    private Vector2 ProcessOffset(Vector2Int targetCell, Vector2 rawOffset)
+    {
+        Vector3 targetPosition = transform.position + (Vector3)(rawOffset * (makeWallOffsetRelative ? World.GridScale / 2 : 1));
+        Vector3 cellCenterPosition = World.GetCellCenter(targetCell);
+        return targetPosition - cellCenterPosition;
+    }
+
+    public void AfterMove(Vector2Int originCell, Quaternion originRotation, Vector2Int targetCell, Quaternion targetRotation)
+    {
+        Vector2Int newCell = targetCell + MathLib.RoundVector(targetRotation * (Vector2)cellOffset);
+        if (surface != null)
+        {
+            surface.MoveTo(newCell, World);
+        }
+        else
+        {
+            surface = GetSurface(false);
+            World.RegisterSurface(surface);
+        }
+        surface.normal = targetRotation * MathLib.Vector2FromAngle(wallAngle);
+        surface.offset = ProcessOffset(newCell, targetRotation * wallOffset);
     }
 }

@@ -19,6 +19,7 @@ public class GridWorld : MonoBehaviour
     [Header("Camera Settings")]
     [SerializeField] private Camera gridCamera;
     [SerializeField] private Vector2 margin;
+    public Camera GridCamera => gridCamera;
 
     public UnityEvent OnTimeStep = new();
     [HideInInspector] public UnityEvent OnSurfacesUpdated = new();
@@ -28,7 +29,7 @@ public class GridWorld : MonoBehaviour
     [HideInInspector] public UnityEvent OnEffectorsUpdated = new();
     private bool effectorsDirty = false;
     private bool suppressEffectorUpdates = false;
-    public bool SuppressEffectorsUpdates { get => suppressEffectorUpdates; set => suppressEffectorUpdates = value; }
+    public bool SuppressEffectorUpdates { get => suppressEffectorUpdates; set => suppressEffectorUpdates = value; }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -131,10 +132,14 @@ public class GridWorld : MonoBehaviour
     }
     public bool DeregisterObstacle(Obstacle obstacle)
     {
+        return DeregisterObstacleInCell(obstacle, obstacle.Cell);
+    }
+    public bool DeregisterObstacleInCell(Obstacle obstacle, Vector2Int origin)
+    {
         if (obstacle.IsFixed)
         {
             bool anythingRemoved = false;
-            foreach (var cell in obstacle.GetOccupiedCells())
+            foreach (var cell in obstacle.GetOccupiedCells(origin))
             {
                 if (fixedObstacles.TryGetValue(cell, out Obstacle existingObstacle) && existingObstacle == obstacle)
                 {
@@ -267,8 +272,12 @@ public class GridWorld : MonoBehaviour
 
     public bool DeregisterEffector(IEffector effector)
     {
+        return DeregisterEffectorInCell(effector, effector.Cell);
+    }
+    public bool DeregisterEffectorInCell(IEffector effector, Vector2Int cell)
+    {
         if (effector == null) return false;
-        if (!effectors.TryGetValue(effector.Cell, out var cellEffectors))
+        if (!effectors.TryGetValue(cell, out var cellEffectors))
         {
             return false;
         }
@@ -434,6 +443,61 @@ public class GridWorld : MonoBehaviour
     public void ResetEffectors()
     {
         effectors.Clear();
+    }
+
+    public void SuppressUpdates() {
+        SuppressSurfaceUpdates = true;
+        SuppressEffectorUpdates = true;
+    }
+    public void RestoreUpdates() {
+        SuppressSurfaceUpdates = false;
+        SuppressEffectorUpdates = false;
+    }
+    private int updateSuppressionDepth = 0;
+    public void EnterUpdateSuppressionBlock()
+    {
+        if (updateSuppressionDepth++ == 0)
+        {
+            SuppressUpdates();
+        }
+    }
+    public void ExitUpdateSuppressionBlock()
+    {
+        if (--updateSuppressionDepth == 0)
+        {
+            RestoreUpdates();
+        }
+    }
+
+    public bool Raycast(Ray mouseRay, out Vector3 point)
+    {
+        Plane plane = new(Vector3.back, transform.position + Vector3.back * (GridDepth / 2));
+        if (plane.Raycast(mouseRay, out float enter))
+        {
+            point = mouseRay.GetPoint(enter);
+            point.z = transform.position.z;
+            return true;
+        }
+
+        point = Vector3.zero;
+        return false;
+    }
+
+    public IEnumerable<Obstacle> GetAllObstacles()
+    {
+        foreach (var kvp in fixedObstacles)
+        {
+            yield return kvp.Value;
+        }
+        foreach (var obstacle in dynamicObstacles)
+        {
+            yield return obstacle;
+        }
+    }
+
+    internal IObstaclePlacementResult CheckValidObstacles()
+    {
+        throw new NotImplementedException();
     }
 }
 

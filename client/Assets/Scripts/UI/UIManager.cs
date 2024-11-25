@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -35,9 +36,15 @@ public class UIManager : MonoBehaviour
         return label;
     }
 
-    public void SetScores(ColorScore[] scores)
+    public void SetScores(IEnumerable<ColorScore> scores)
     {
         VisualElement holder = _document.rootVisualElement.Q("ScoreHolder");
+        if (holder == null)
+        {
+            Debug.LogError($"Error while setting scores, no ScoreHolder UI element can be found");
+            return;
+        }
+        
         foreach (var child in holder.Children())
         {
             holder.Remove(child);

@@ -69,7 +69,7 @@ public class Surface
         return (this.flags & flags) > 0;
     }
 
-    public void MoveSurface(Vector2Int newCell, GridWorld grid)
+    public void MoveTo(Vector2Int newCell, GridWorld grid)
     {
         grid.DeregisterSurface(this);
         cell = newCell;

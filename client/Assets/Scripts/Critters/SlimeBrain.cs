@@ -24,13 +24,13 @@ public class SlimeBrain : EntityBrain
         if (entity.StandingSurface == null)
         {
             motion = fallVelocity + entity.FallHeight * fallAcceleration;
-            result = GetMoveFromMotion(motion, entity, out _, MoveFlags.None, 60);
+            result = GetMoveFromMotion(motion, entity, out _, out _);
             if (result != null) return result;
         }
         else
         {
             // We'll try to follow a point in the middle of the entity forward by a distance equaling one unit
-            result = GetForwardMove(entity, out _);
+            result = GetForwardMove(entity, out _, out _);
             if (result != null) return result;
 
             // If this fails, that means we are running into something, so we'll try to turn around

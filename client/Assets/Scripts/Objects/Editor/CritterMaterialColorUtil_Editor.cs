@@ -46,7 +46,7 @@ public class CritterMaterialColorUtil_Editor : Editor
     public void HandleAssignColorClick()
     {
         var script = (CritterMaterialColorUtil)target;
-        script.SetColor();
+        script.UpdateColor();
     }
 
 }

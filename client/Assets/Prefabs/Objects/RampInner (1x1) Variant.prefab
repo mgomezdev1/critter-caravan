@@ -138,6 +138,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: RampInner (1x1) Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 6348745474318690539, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
+      propertyPath: obstacleName
+      value: Quarter Pipe (Inner)
+      objectReference: {fileID: 0}
     - target: {fileID: 6985962926821544034, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
       propertyPath: grid
       value: 
@@ -214,12 +218,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   flags: 0
-  effectorMoves:
-  - {fileID: 3322290541347342446}
   registerToCell: 0
   effectorForward: {x: 1, y: 1}
   maxForwardAngle: 30
+  rotationType: 0
+  effectorMoves:
+  - {fileID: 3322290541347342446}
+  verticalAnchor: 0
   moveFlags: 0
+  moveMaxSurfaceSnapAngle: 60
+  movePriority: 0
 --- !u!114 &8948916423881604960
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -233,9 +241,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   flags: 0
-  effectorMoves:
-  - {fileID: 4563566311512572317}
   registerToCell: 0
   effectorForward: {x: -1, y: -1}
   maxForwardAngle: 30
+  rotationType: 0
+  effectorMoves:
+  - {fileID: 4563566311512572317}
+  verticalAnchor: 0
   moveFlags: 0
+  moveMaxSurfaceSnapAngle: 60
+  movePriority: 0

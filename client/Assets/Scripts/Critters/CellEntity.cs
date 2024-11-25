@@ -34,9 +34,8 @@ public class CellEntity : CellElement
         } 
     }
     public Surface? StandingSurface { get; private set; }
-    [SerializeField] protected int fallHeight = 0;
-    public bool Falling => fallHeight > 0;
-    public int FallHeight => fallHeight;
+    public bool Falling => FallHeight > 0;
+    public int FallHeight { get; set; }
     float moveTimer = 0f;
 
     public override Vector2Int Cell
@@ -133,11 +132,11 @@ public class CellEntity : CellElement
         cell = move.GetCell();
         if (move.surface == null)
         {
-            fallHeight++;
+            FallHeight++;
         } 
         else
         {
-            fallHeight = 0;
+            FallHeight = 0;
         }
     }
 

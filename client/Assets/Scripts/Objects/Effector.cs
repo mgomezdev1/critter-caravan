@@ -42,7 +42,7 @@ public enum MoveRotationType
     KeepRotation = 2
 }
 
-public class Effector : CellBehaviour<CellElement>, IEffector
+public class Effector : CellBehaviour<CellElement>, IEffector, IMovable
 {
     [SerializeField] private EffectorFlags flags;
     [SerializeField] private bool registerToCell = true;
@@ -76,6 +76,11 @@ public class Effector : CellBehaviour<CellElement>, IEffector
         {
             Debug.Log($"Effector aborted (forward angle mismatch)");
             return new EffectResult() { executed = false };
+        }
+
+        if (flags.HasFlag(EffectorFlags.StopFall))
+        {
+            entity.FallHeight = 0;
         }
 
         Move? firstMove = null;
@@ -181,5 +186,14 @@ public class Effector : CellBehaviour<CellElement>, IEffector
     public override string ToString()
     {
         return $"{gameObject.name} effector -> F={effectorForward}, MaxTheta={maxForwardAngle}, NumMoves={effectorMoves.Count}";
+    }
+
+    public void AfterMove(Vector2Int originCell, Quaternion originRotation, Vector2Int targetCell, Quaternion targetRotation)
+    {
+        if (registerToCell)
+        {
+            World.DeregisterEffectorInCell(this, originCell);
+            World.RegisterEffector(this);
+        }
     }
 }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LineEmitter : CellBehaviour<CellElement>
+public class LineEmitter : CellBehaviour<CellElement>, IMovable
 {
     [SerializeField] Vector2Int propagationVector = Vector2Int.up;
     [SerializeField] Vector2Int startOffset = Vector2Int.zero;
@@ -45,17 +45,19 @@ public class LineEmitter : CellBehaviour<CellElement>
         {
             Destroy(go);
         }
+        spawnedObjects.Clear();
     }
 
     public void RespawnLineSafe()
     {
-        World.SuppressSurfaceUpdates = true;
+        World.SuppressUpdates();
         RespawnLine();
-        World.SuppressSurfaceUpdates = false;
+        World.RestoreUpdates();
     }
 
     public void RespawnLine()
     {
+        DestroySpawnedObjects();
         List<Vector2Int> cells = new();
 
         Vector2 rotatedPropVector = GetRotatedPropagationVector();
@@ -67,14 +69,13 @@ public class LineEmitter : CellBehaviour<CellElement>
 
         for (int i = 0; i < cells.Count; ++i)
         {
-            GameObject prefab = i == 0 ?
-                headPrefab : i == cells.Count - 1 ?
-                tailPrefab :
+            GameObject prefab = 
+                i == 0 ? headPrefab :
+                i == cells.Count - 1 ? tailPrefab :
                 bodyPrefab;
 
             GameObject newSpawnedInstance = Instantiate(prefab, transform);
-            newSpawnedInstance.transform.position = World.GetCellCenter(cells[i]);
-            newSpawnedInstance.transform.rotation = spawnRotation;
+            newSpawnedInstance.transform.SetPositionAndRotation(World.GetCellCenter(cells[i]), spawnRotation);
             if (newSpawnedInstance.TryGetComponent(out CellElement spawnedCellElement))
             {
                 spawnedCellElement.World = World;
@@ -135,5 +136,10 @@ public class LineEmitter : CellBehaviour<CellElement>
             Vector3 pos = World.GetCellCenter(cell);
             Gizmos.DrawLine(pos, pos + dirDelta);
         }
+    }
+
+    public void AfterMove(Vector2Int originCell, Quaternion originRotation, Vector2Int targetCell, Quaternion targetRotation)
+    {
+        RespawnLineSafe();
     }
 }

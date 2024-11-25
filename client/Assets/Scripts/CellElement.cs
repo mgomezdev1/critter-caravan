@@ -15,24 +15,24 @@ public class CellElement : MonoBehaviour
             world = value; 
         } 
     }
-    [SerializeField] protected Vector2Int cell;
-    public virtual Vector2Int Cell { get
+    protected Vector2Int cell;
+    public virtual Vector2Int Cell { 
+        get
         {
             if (cellValueDirty)
             {
                 cellValueDirty = false;
-                cell = world.GetCell(transform.position - snapOffset);
+                cell = world.GetCell(transform.position);
             }
             return cell;
         }
+        set
+        {
+            cell = value;
+            cellValueDirty = false;
+            transform.position = world.GetCellCenter(cell);
+        }
     }
-    [SerializeField] protected bool snapping;
-    public bool Snapping
-    {
-        get { return snapping; }
-        set { snapping = value; }
-    }
-    [SerializeField] protected Vector3 snapOffset;
     protected bool cellValueDirty = true;
 
     // Color
@@ -77,15 +77,6 @@ public class CellElement : MonoBehaviour
             Debug.LogWarning($"Cell element {gameObject.name} has no grid reference.");
             return;
         }
-
-        if (snapping)
-        {
-            transform.position = world.GetCellCenter(Cell) + snapOffset;
-        }
-        else
-        {
-            cell = world.GetCell(transform.position - snapOffset);
-        }
     }
 
     public virtual void HandleTimeStep()
@@ -97,5 +88,10 @@ public class CellElement : MonoBehaviour
     {
         // nothing here so far
         // might be useful in subclasses
+    }
+
+    public void MarkPositionDirty()
+    {
+        cellValueDirty = true;
     }
 }

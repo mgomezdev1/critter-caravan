@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Campsite : CellBehaviour<CellElement>, IEffector
+public class Campsite : CellBehaviour<CellElement>, IEffector, IMovable
 {
     public EffectorFlags Flags => EffectorFlags.RequireSurface;
 
@@ -22,6 +22,12 @@ public class Campsite : CellBehaviour<CellElement>, IEffector
 
     private void Start()
     {
+        World.RegisterEffector(this);
+    }
+
+    public void AfterMove(Vector2Int originCell, Quaternion originRotation, Vector2Int targetCell, Quaternion targetRotation)
+    {
+        World.DeregisterEffectorInCell(this, originCell);
         World.RegisterEffector(this);
     }
 }

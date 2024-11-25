@@ -1,4 +1,6 @@
+using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using static UnityEngine.EventSystems.EventTrigger;
@@ -26,12 +28,12 @@ public abstract class EntityBrain : MonoBehaviour
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public EntityMove? GetForwardMove(CellEntity entity, out Surface? blockingSurface, MoveFlags flags = MoveFlags.None, float maxFloorSnapAngle = 60f)
+    public EntityMove? GetForwardMove(CellEntity entity, out Surface? blockingSurface, out List<IEffector> blockingEffectors, MoveFlags flags = MoveFlags.None, float maxFloorSnapAngle = 60f)
     {
-        return GetMoveFromMotion(entity.transform.forward, entity, out blockingSurface, flags, maxFloorSnapAngle);
+        return GetMoveFromMotion(entity.transform.forward, entity, out blockingSurface, out blockingEffectors, flags, maxFloorSnapAngle);
     }
 
-    public EntityMove? GetMoveFromMotion(Vector2 motion, CellEntity entity, out Surface? blockingSurface, MoveFlags flags = MoveFlags.None, float maxFloorSnapAngle = 60f)
+    public EntityMove? GetMoveFromMotion(Vector2 motion, CellEntity entity, out Surface? blockingSurface, out List<IEffector> blockingEffectors, MoveFlags flags = MoveFlags.None, float maxFloorSnapAngle = 60f)
     {
         Move move = new(
             entity.Center + (Vector3)motion * entity.World.GridScale,
@@ -41,6 +43,6 @@ public abstract class EntityBrain : MonoBehaviour
             maxFloorSnapAngle
         );
 
-        return move.Process(entity, out blockingSurface);
+        return move.Process(entity, out blockingSurface, out blockingEffectors);
     }
 }
