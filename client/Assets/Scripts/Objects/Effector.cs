@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 #nullable enable
+#pragma warning disable CS8618
 public class EffectResult
 {
     public bool executed = true;

@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 #nullable enable
+#pragma warning disable CS8618
 public enum GameMode
 {
     LevelEdit,
@@ -31,13 +32,12 @@ public class WorldManager : MonoBehaviour
     [SerializeField] private UIManager ui;
     [SerializeField] private GridWorld activeWorld;
     public UIManager UI => ui;
-
+    public GridWorld World => activeWorld;
 
     [SerializeField] private GameMode gameMode;
     public GameMode GameMode => gameMode;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    void Awake()
     {
         instance = this;
     }
@@ -61,7 +61,8 @@ public class WorldManager : MonoBehaviour
         {
             if (clickChanged)
             {
-                HandleWorldMouseDown();
+                // This is invoked through the UI subsystem
+                //HandleWorldMouseDown();
             }
 
             HandleWorldMouseHeld();
@@ -76,9 +77,9 @@ public class WorldManager : MonoBehaviour
 
     public void HandleWorldMouseDown()
     {
-        HandleWorldClick(GetCameraRay());
+        HandleWorldMouseDown(GetCameraRay());
     }
-    public void HandleWorldClick(Ray cameraRay)
+    public void HandleWorldMouseDown(Ray cameraRay)
     {
         Obstacle? candidate = GetObstacleAtRay(cameraRay);
         //Debug.Log($"Attempting to start drag of obstacle {candidate}");
@@ -87,6 +88,10 @@ public class WorldManager : MonoBehaviour
             //Debug.Log($"Candidate can be dragged!");
             heldObstacle = candidate;
             heldObstacle.BeginDragging();
+        }
+        else
+        {
+            heldObstacle = null;
         }
     }
     public void HandleWorldMouseHeld()
@@ -114,6 +119,7 @@ public class WorldManager : MonoBehaviour
                 DisplayMessage(placementResult.Reason);
                 HighlightIncompatibilities(placementResult);
             }
+            heldObstacle = null;
         }
     }
 
@@ -159,6 +165,7 @@ public class WorldManager : MonoBehaviour
             if (obstacle.IsDragging) return false;
         }
 
+        ResetScenario();
         this.gameMode = gameMode;
         return true;
     }
@@ -182,6 +189,12 @@ public class WorldManager : MonoBehaviour
         return null;
     }
 
+    public void ResetScenario()
+    {
+        ResetScores();
+        activeWorld.HandleReset();
+    }
+
     /* ********************** *
      *     SCORE MANAGER      *
      * ********************** */
@@ -192,11 +205,13 @@ public class WorldManager : MonoBehaviour
     }
     public ColorScore AddScore(ColorScore score)
     {
+        // Debug.Log($"Registering score {score}");
         for (int i = 0; i < scores.Count; i++)
         {
             if (scores[i].color == score.color)
             {
                 scores[i] += score;
+                UI.SetScores(scores);
                 return scores[i];
             }
         }

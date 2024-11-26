@@ -5,8 +5,9 @@ using Utils;
 using UnityEngine;
 
 #nullable enable
+#pragma warning disable CS8618
 [RequireComponent(typeof(Animator))]
-public class CellEntity : CellElement
+public class CellEntity : CellElement, IResettable
 {
     // Position and Size
     [SerializeField] private Transform floorPointRoot;
@@ -36,7 +37,6 @@ public class CellEntity : CellElement
     public Surface? StandingSurface { get; private set; }
     public bool Falling => FallHeight > 0;
     public int FallHeight { get; set; }
-    float moveTimer = 0f;
 
     public override Vector2Int Cell
     {
@@ -66,15 +66,17 @@ public class CellEntity : CellElement
     protected override void Update()
     {
         base.Update();
-        if (CurrentMove != null && moveTimer > 0f)
+        EntityMove? move = CurrentMove;
+        if (move != null)
         {
+            float moveTimer = Mathf.Clamp01(1 - World.TimeFragment);
+            float moveSegment = Time.deltaTime * World.TimeSpeed / moveTimer;
             Vector3 oldPosition = transform.position;
             transform.SetPositionAndRotation(
-                Vector3.Lerp(transform.position, CurrentMove.movePosition, Time.deltaTime / moveTimer),
-                Quaternion.Lerp(transform.rotation, CurrentMove.moveRotation, Time.deltaTime / moveTimer)
+                Vector3.Lerp(transform.position, move.movePosition, moveSegment),
+                Quaternion.Lerp(transform.rotation, move.moveRotation, moveSegment)
             );
             AnimateVelocity((transform.position - oldPosition) / Time.deltaTime);
-            moveTimer -= Time.deltaTime;
         }
     }
 
@@ -101,7 +103,6 @@ public class CellEntity : CellElement
         {
             CurrentMove = FetchMove();
             Debug.Log($"Executing move {CurrentMove}");
-            moveTimer = 1f;
         }
         AfterTimeStep();
     }
@@ -158,6 +159,11 @@ public class CellEntity : CellElement
         {
             Die();
         }
+    }
+
+    public void HandleReset()
+    {
+        Destroy(gameObject);
     }
 
     /// <summary>
@@ -243,7 +249,9 @@ public class CellEntity : CellElement
     protected bool goalReached = false;
     public void ReachGoal()
     {
+        if (goalReached) { return; }
         goalReached = true;
+        WorldManager.Instance.AddScore(new ColorScore(1, 0, Color));
         AnimateCampReached();
     }
 

@@ -9,7 +9,6 @@ public class Campsite : CellBehaviour<CellElement>, IEffector, IMovable
         if (entity.Color == CellComponent.Color)
         {
             entity.ReachGoal();
-            WorldManager.Instance.AddScore(new ColorScore(1, 0, CellComponent.Color));
             return new EffectResult() { executed = true };
         }
         return new EffectResult() { executed = false };

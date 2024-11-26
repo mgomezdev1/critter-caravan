@@ -2751,6 +2751,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 391580078}
     m_Modifications:
+    - target: {fileID: 1713405006553826134, guid: 753540ce5a4990a499609825e2d8f5eb, type: 3}
+      propertyPath: isFixed
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2170380489152428110, guid: 753540ce5a4990a499609825e2d8f5eb, type: 3}
       propertyPath: m_Name
       value: Sign
@@ -2929,6 +2933,10 @@ PrefabInstance:
       propertyPath: world
       value: 
       objectReference: {fileID: 391580079}
+    - target: {fileID: 8500731662016917601, guid: d18cd2302c4605e48a9f07f445ad130e, type: 3}
+      propertyPath: isFixed
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8944477754094848889, guid: d18cd2302c4605e48a9f07f445ad130e, type: 3}
       propertyPath: m_Name
       value: VirtualTile

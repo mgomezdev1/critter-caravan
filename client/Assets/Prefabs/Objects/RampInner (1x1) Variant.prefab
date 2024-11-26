@@ -173,6 +173,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5891490168069182451, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8948916423881604960}
+    - targetCorrespondingSourceObject: {fileID: 5891490168069182451, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1041921654540919624}
+    - targetCorrespondingSourceObject: {fileID: 5891490168069182451, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2046642326161957179}
   m_SourcePrefab: {fileID: 100100000, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
 --- !u!4 &2617297664457831690 stripped
 Transform:
@@ -251,3 +257,41 @@ MonoBehaviour:
   moveFlags: 0
   moveMaxSurfaceSnapAngle: 60
   movePriority: 0
+--- !u!114 &1041921654540919624
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9075939723519792956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc6223ea04261b44d99397cee825ac48, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  wallAngle: 0
+  wallOffset: {x: 1, y: 0}
+  makeWallOffsetRelative: 1
+  cellOffset: {x: 1, y: 0}
+  surfaceProperties: 0
+  surfacePriority: 0
+  effectors: []
+--- !u!114 &2046642326161957179
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9075939723519792956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc6223ea04261b44d99397cee825ac48, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  wallAngle: 270
+  wallOffset: {x: 0, y: -1}
+  makeWallOffsetRelative: 1
+  cellOffset: {x: 0, y: -1}
+  surfaceProperties: 0
+  surfacePriority: 0
+  effectors: []

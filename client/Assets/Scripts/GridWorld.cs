@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 #nullable enable
+#pragma warning disable CS8618
 [ExecuteInEditMode]
 public class GridWorld : MonoBehaviour
 {
@@ -41,13 +42,18 @@ public class GridWorld : MonoBehaviour
         }
     }
 
+    public float TimeSpeed { get; set; }
+    float timeFragment;
+    public float TimeFragment => timeFragment;
     // Update is called once per frame
     void Update()
     {
+# if UNITY_EDITOR
         if (!Application.isPlaying)
         {
             ReadjustCameraPosition();
         }
+# endif
 
         if (surfacesDirty)
         {
@@ -60,6 +66,16 @@ public class GridWorld : MonoBehaviour
             // maybe do some precalculations again
             effectorsDirty = false;
             OnEffectorsUpdated.Invoke();
+        }
+
+        if (WorldManager.Instance.GameMode == GameMode.Play)
+        {
+            timeFragment += Time.deltaTime * TimeSpeed;
+            if (timeFragment >= 1)
+            {
+                timeFragment -= 1;
+                ExternalInvokeTimeStep();
+            }
         }
     }
 
@@ -365,11 +381,16 @@ public class GridWorld : MonoBehaviour
         }
     }
 
-    private int time = 0;
-    public int Time => time;
-    public void InvokeTimeStep()
+    private int step = 0;
+    public int Step => step;
+    public void ExternalInvokeTimeStep()
     {
-        time++;
+        timeFragment = 0;
+        InvokeTimeStep();
+    }
+    private void InvokeTimeStep()
+    {
+        step++;
         OnTimeStep.Invoke();
     }
 
@@ -495,9 +516,25 @@ public class GridWorld : MonoBehaviour
         }
     }
 
-    internal IObstaclePlacementResult CheckValidObstacles()
+    public IObstaclePlacementResult CheckValidObstacles(Obstacle lastChanged)
     {
-        throw new NotImplementedException();
+        foreach (var obstacle in GetAllObstacles())
+        {
+            if (obstacle == lastChanged) continue;
+            var result = obstacle.CheckValidity();
+            if (!result.Success) return result;
+        }
+        return new ObstaclePlacementSuccess(lastChanged);
+    }
+
+    public void HandleReset()
+    {
+        timeFragment = 0;
+        TimeSpeed = 1;
+        foreach (var resettable in GetComponentsInChildren<IResettable>())
+        {
+            resettable.HandleReset();
+        }
     }
 }
 

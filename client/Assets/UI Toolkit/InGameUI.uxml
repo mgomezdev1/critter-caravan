@@ -1,9 +1,112 @@
 <engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI%20Toolkit/global.uss?fileID=7433441132597879392&amp;guid=7ba1cb99606c0df4f8a29b3c4d954bad&amp;type=3#global" />
+    <Style src="project://database/Assets/UI%20Toolkit/gameUI.uss?fileID=7433441132597879392&amp;guid=68e4d41cb0d4845449153c03fbaba48e&amp;type=3#gameUI" />
     <engine:VisualElement name="root" class="root" style="flex-grow: 1;">
-        <engine:VisualElement name="container" style="flex-grow: 1;" />
-        <engine:VisualElement name="debug" class="debug" style="flex-grow: 1; position: absolute; top: auto; left: 0; right: 0; bottom: 0;">
-            <engine:VisualElement name="debugrow" class="row-center">
+        <engine:VisualElement name="VisualElement" class="fallthrough" style="flex-grow: 1;" />
+        <engine:VisualElement name="container" picking-mode="Ignore" style="flex-grow: 1; justify-content: space-between; flex-direction: column; align-items: stretch;">
+            <engine:VisualElement name="TopBar" picking-mode="Ignore" style="flex-grow: 0; align-self: stretch; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; flex-direction: column;">
+                <engine:VisualElement name="EditMenu" picking-mode="Ignore" class="hide-play" style="flex-grow: 1; align-items: center; flex-direction: row; justify-content: center;">
+                    <engine:Button text="Play" name="PlayButton" class="button" />
+                </engine:VisualElement>
+                <engine:VisualElement name="PlayMenu" picking-mode="Ignore" class="hide-edit" style="flex-grow: 1; align-items: center; flex-direction: row; justify-content: center;">
+                    <engine:Button text="Edit" name="EditButton" class="button" />
+                    <engine:VisualElement name="SpeedSettings" style="flex-grow: 0; margin-right: 45px; margin-left: 45px; height: 50px; flex-direction: row;">
+                        <engine:Button data-source="project://database/Assets/UI%20Toolkit/Data/Speed0Pause.asset?fileID=11400000&amp;guid=bda49c98ac010384d9fdeb13c180ebdf&amp;type=2#Speed0Pause" icon-image="project://database/Assets/UI%20Toolkit/Images/Speed/Pause.png?fileID=21300000&amp;guid=a9687fe1102ef9840917454a26710349&amp;type=3#Pause" name="Pause" class="speed-button">
+                            <Bindings>
+                                <engine:DataBinding property="iconImage" data-source-path="icon" binding-mode="ToTarget" />
+                            </Bindings>
+                        </engine:Button>
+                        <engine:Button data-source="project://database/Assets/UI%20Toolkit/Data/Speed1Slow.asset?fileID=11400000&amp;guid=8cac57835ec04ff49bd5c06a001517ba&amp;type=2#Speed1Slow" icon-image="project://database/Assets/UI%20Toolkit/Images/Speed/Slow.png?fileID=21300000&amp;guid=596bd2edd1ff19e48b7c11067b8cb929&amp;type=3#Slow" name="Slow" class="speed-button">
+                            <Bindings>
+                                <engine:DataBinding property="iconImage" data-source-path="icon" binding-mode="ToTarget" />
+                            </Bindings>
+                        </engine:Button>
+                        <engine:Button data-source="project://database/Assets/UI%20Toolkit/Data/Speed2Regular.asset?fileID=11400000&amp;guid=d0a318dc8cc506d4fa9e4eb2c6566c6c&amp;type=2#Speed2Regular" icon-image="project://database/Assets/UI%20Toolkit/Images/Speed/Play.png?fileID=21300000&amp;guid=867b85fa0baccff44bc698992601087f&amp;type=3#Play" name="Play" class="speed-button selected">
+                            <Bindings>
+                                <engine:DataBinding property="iconImage" data-source-path="icon" binding-mode="ToTarget" />
+                            </Bindings>
+                        </engine:Button>
+                        <engine:Button data-source="project://database/Assets/UI%20Toolkit/Data/Speed3Fast.asset?fileID=11400000&amp;guid=cc86bc25caa9b5a4796a1080f11e27d3&amp;type=2#Speed3Fast" icon-image="project://database/Assets/UI%20Toolkit/Images/Speed/Fast.png?fileID=21300000&amp;guid=c3a0c9f9d68dd9541a1378bc6e8497da&amp;type=3#Fast" name="Fast" class="speed-button">
+                            <Bindings>
+                                <engine:DataBinding property="iconImage" data-source-path="icon" binding-mode="ToTarget" />
+                            </Bindings>
+                        </engine:Button>
+                        <engine:Button data-source="project://database/Assets/UI%20Toolkit/Data/Speed4Blazing.asset?fileID=11400000&amp;guid=2fdd8d7ecf0948f40884ffac853ef708&amp;type=2#Speed4Blazing" icon-image="project://database/Assets/UI%20Toolkit/Images/Speed/Blazing.png?fileID=21300000&amp;guid=2f16e83bd98aa5643a78e30cd734fad7&amp;type=3#Blazing" name="Blazing" class="speed-button">
+                            <Bindings>
+                                <engine:DataBinding property="iconImage" data-source-path="icon" binding-mode="ToTarget" />
+                            </Bindings>
+                        </engine:Button>
+                    </engine:VisualElement>
+                </engine:VisualElement>
+            </engine:VisualElement>
+            <engine:VisualElement name="ToolBar" class="collapsable collapsed hide-play" style="flex-grow: 0;">
+                <engine:VisualElement name="ShowBar" style="flex-grow: 1;">
+                    <engine:Button name="ToolBarShowButton" icon-image="project://database/Assets/UI%20Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss?fileID=-4528830608231651361&amp;guid=28ee427162c361e4c9de3a29022416fa&amp;type=3#arrow-up@2x" class="minibutton" style="margin-right: 0; margin-top: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; border-left-width: 0; border-top-left-radius: 0; border-top-width: 1px; border-bottom-width: 0; border-right-width: 0; border-left-color: rgb(24, 24, 24); border-right-color: rgb(24, 24, 24); border-top-color: rgb(24, 24, 24); border-bottom-color: rgb(24, 24, 24);" />
+                </engine:VisualElement>
+                <engine:VisualElement name="ToolBarMenu" class="collapsable" style="flex-grow: 1; overflow: hidden;">
+                    <engine:TabView>
+                        <engine:Tab label="Sample Category" name="SampleCategory" icon-image="project://database/Assets/UI%20Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss?fileID=4584671053970592468&amp;guid=28ee427162c361e4c9de3a29022416fa&amp;type=3#console.warnicon" class="category">
+                            <engine:VisualElement name="SampleRow" style="flex-grow: 1; flex-direction: row;" />
+                            <engine:ScrollView>
+                                <engine:VisualElement name="SampleRow" style="flex-grow: 1; flex-direction: row;">
+                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
+                                        <engine:VisualElement name="VisualElement" class="display-image" />
+                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
+                                    </engine:Button>
+                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
+                                        <engine:VisualElement name="VisualElement" class="display-image" />
+                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
+                                    </engine:Button>
+                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
+                                        <engine:VisualElement name="VisualElement" class="display-image" />
+                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
+                                    </engine:Button>
+                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
+                                        <engine:VisualElement name="VisualElement" class="display-image" />
+                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
+                                    </engine:Button>
+                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
+                                        <engine:VisualElement name="VisualElement" class="display-image" />
+                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
+                                    </engine:Button>
+                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
+                                        <engine:VisualElement name="VisualElement" class="display-image" />
+                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
+                                    </engine:Button>
+                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
+                                        <engine:VisualElement name="VisualElement" class="display-image" />
+                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
+                                    </engine:Button>
+                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
+                                        <engine:VisualElement name="VisualElement" class="display-image" />
+                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
+                                    </engine:Button>
+                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
+                                        <engine:VisualElement name="VisualElement" class="display-image" />
+                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
+                                    </engine:Button>
+                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
+                                        <engine:VisualElement name="VisualElement" class="display-image" />
+                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
+                                    </engine:Button>
+                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
+                                        <engine:VisualElement name="VisualElement" class="display-image" />
+                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
+                                    </engine:Button>
+                                </engine:VisualElement>
+                            </engine:ScrollView>
+                        </engine:Tab>
+                    </engine:TabView>
+                </engine:VisualElement>
+            </engine:VisualElement>
+            <engine:VisualElement name="ScoreHolder" picking-mode="Ignore" style="flex-grow: 1; position: absolute; top: 25px; right: 25px; flex-direction: row-reverse; align-items: center; -unity-text-outline-width: 0; -unity-text-outline-color: rgb(0, 0, 0); text-shadow: 1.8px 1.6px 1.5px rgb(67, 67, 67);">
+                <engine:Label text="0/3&#10;" />
+                <engine:Label text="0/3&#10;" />
+                <engine:Label text="0/3&#10;" />
+            </engine:VisualElement>
+        </engine:VisualElement>
+        <engine:VisualElement name="debug" class="debug" style="flex-grow: 1; position: absolute; top: 0; left: 0; right: auto; bottom: auto;">
+            <engine:VisualElement name="debugrow" class="row-center display-label">
                 <engine:Button text="Step" name="step-button" class="button" style="width: 227px; height: 55px; text-overflow: clip;" />
             </engine:VisualElement>
         </engine:VisualElement>

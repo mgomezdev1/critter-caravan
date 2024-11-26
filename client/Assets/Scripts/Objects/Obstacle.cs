@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.LightTransport;
 
 #nullable enable
+#pragma warning disable CS8618
 public interface IObstaclePlacementResult
 {
     public Obstacle Obstacle { get; }
@@ -166,7 +167,7 @@ public class Obstacle : CellBehaviour<CellElement>
             World.SuppressSurfaceUpdates = true;
             transform.SetPositionAndRotation(World.GetCellCenter(newOrigin), newRotation);
             InvokeMoved(currentCell, savedRot, newOrigin, newRotation);
-            IObstaclePlacementResult result = World.CheckValidObstacles();
+            IObstaclePlacementResult result = World.CheckValidObstacles(this);
             transform.SetPositionAndRotation(savedPos, savedRot);
             InvokeMoved(newOrigin, newRotation, currentCell, savedRot);
             World.SuppressEffectorUpdates = false;

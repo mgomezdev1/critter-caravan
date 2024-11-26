@@ -330,6 +330,10 @@ PrefabInstance:
       propertyPath: obstacleName
       value: Encampment
       objectReference: {fileID: 0}
+    - target: {fileID: 6348745474318690539, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
+      propertyPath: requirements
+      value: -1
+      objectReference: {fileID: 0}
     - target: {fileID: 6945208084812791972, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
       propertyPath: meshes.Array.size
       value: 3

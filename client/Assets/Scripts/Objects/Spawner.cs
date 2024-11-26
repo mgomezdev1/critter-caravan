@@ -5,7 +5,7 @@ using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
-public class Spawner : CellBehaviour<CellElement>
+public class Spawner : CellBehaviour<CellElement>, IResettable
 {
     [SerializeField] private GameObject spawnObject;
     [SerializeField] private Transform spawnRoot;
@@ -34,10 +34,20 @@ public class Spawner : CellBehaviour<CellElement>
         int totalSpawnCount = TotalSpawnCount;
         SetSpawnLabel(totalSpawnCount);
         World.OnTimeStep.AddListener(OnTimeStep);
+        HandleReset();
+    }
+
+    public void HandleReset()
+    {
+        int totalSpawnCount = TotalSpawnCount;
         if (isCritterSpawner)
         {
             WorldManager.Instance.AddScore(new(0, totalSpawnCount, CellComponent.Color));
         }
+        remainingSpawnIterations = spawnIterations;
+        remainingSpawnDelays = new();
+        elapsedDelay = prewarmSteps;
+        SetSpawnLabel(totalSpawnCount);
     }
 
     int elapsedDelay = 0;
@@ -80,7 +90,8 @@ public class Spawner : CellBehaviour<CellElement>
 
     public void Spawn()
     {
-        GameObject newObject = Instantiate(spawnObject);
+        Transform parent = World.transform;
+        GameObject newObject = Instantiate(spawnObject, parent);
         Vector3 spawnPosition = spawnRoot.position;
         Quaternion spawnRotation = spawnRoot.rotation;
 

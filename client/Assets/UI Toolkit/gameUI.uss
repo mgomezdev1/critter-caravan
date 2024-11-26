@@ -1,0 +1,87 @@
+#ScoreHolder Label {
+    font-size: 52px;
+    -unity-text-align: middle-left;
+    text-shadow: 3px 3px 6px rgb(51, 51, 51);
+    margin-left: 40px;
+}
+
+.play-mode .hide-play {
+    display: none;
+}
+
+.edit-mode .hide-edit {
+    display: none;
+}
+
+.category {
+}
+
+.item {
+    font-size: 14px;
+    -unity-font-definition: url("project://database/Assets/TextMesh%20Pro/Examples%20&%20Extras/Fonts/Anton.ttf?fileID=12800000&guid=997a43b767814dd0a7642ec9b78cba41&type=3#Anton");
+    width: 100px;
+    height: 120px;
+    justify-content: space-between;
+    padding-top: 2px;
+    padding-right: 2px;
+    padding-bottom: 2px;
+    padding-left: 2px;
+}
+
+.item .display-label {
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+}
+
+.item .display-image {
+    background-image: url("project://database/Assets/TextMesh%20Pro/Examples%20&%20Extras/Sprites/Default%20Sprites.png?fileID=2800000&guid=a0fc465d6cf04254a2938578735e2383&type=3#Default Sprites");
+    background-size: contain;
+    -unity-background-scale-mode: scale-to-fit;
+    width: 100%;
+    flex-grow: 1;
+}
+
+.item .display-label {
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+}
+
+.fallthrough {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    visibility: visible;
+    opacity: 0;
+}
+
+.speed-button {
+    width: 50px;
+    height: 100%;
+    margin-top: 0;
+    margin-right: 2px;
+    margin-bottom: 0;
+    margin-left: 2px;
+    padding-top: 6px;
+    padding-right: 6px;
+    padding-bottom: 6px;
+    padding-left: 6px;
+}
+
+.selected {
+    background-image: url("project://database/Assets/TextMesh%20Pro/Examples%20&%20Extras/Textures/Brushed%20Metal%203.jpg?fileID=2800000&guid=f88677df267a41d6be1e7a6133e7d227&type=3#Brushed Metal 3");
+}
