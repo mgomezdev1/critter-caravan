@@ -36,8 +36,6 @@ public class SingleSurface : CellBehaviour<CellElement>, IMovable
             World.DeregisterSurface(surface);
         }
 
-        float gridScale = World.GridScale;
-
         Vector2Int rotatedCellOffset = MathLib.RoundVector(transform.rotation * (Vector2)cellOffset);
         Vector2 rotatedNormal = transform.rotation * MathLib.Vector2FromAngle(wallAngle);
         Vector2 rotatedWallOffset = transform.rotation * wallOffset;
@@ -45,7 +43,7 @@ public class SingleSurface : CellBehaviour<CellElement>, IMovable
 
         surface = new Surface(finalCell, rotatedNormal, ProcessOffset(finalCell, rotatedWallOffset), surfaceProperties, surfacePriority)
         {
-            effectors = effectors
+            effectors = new HashSet<IEffector>(effectors)
         };
 
         return surface;

@@ -14,7 +14,7 @@ public class Surface
     /// Methods that search surfaces should return the eligible surface with the lowest priority value.
     /// </summary>
     public int priority;
-    public IEnumerable<IEffector> effectors = new List<Effector>();
+    public HashSet<IEffector> effectors = new();
 
     [Flags]
     public enum Flags {
@@ -31,15 +31,15 @@ public class Surface
     public Surface(Vector2Int cell, Vector2 normal, Vector2? offset = null, Flags flags = Flags.None, int priority = 0)
     {
         this.cell = cell;
-        this.normal = normal;
+        this.normal = normal.normalized;
         this.offset = offset ?? Vector2.zero;
         this.flags = flags;
         this.priority = priority;
     }
 
-    public Vector3 GetStandingPosition(GridWorld grid)
+    public Vector3 GetStandingPosition(GridWorld grid, float height = 0)
     {
-        return grid.GetCellCenter(cell) + (Vector3)offset;
+        return grid.GetCellCenter(cell) + (Vector3)offset + (height * (Vector3)normal);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -47,13 +47,17 @@ public class Surface
     {
         return Mathf.Rad2Deg * Mathf.Atan2(normal.y, normal.x);
     }
-    public Quaternion GetStandingRotation(Quaternion entityRotation, bool flipOrientation = false)
+    public Quaternion GetStandingEntityRotation(Quaternion entityRotation, bool flipOrientation = false)
     {
         return MathLib.GetRotationFromUpAngle(GetStandingAngle(), MathLib.RightSidePointsAway(entityRotation) ^ flipOrientation);
     }
-    public Quaternion GetStandingRotation(bool rightSidePointsAway)
+    public Quaternion GetStandingEntityRotation(bool rightSidePointsAway)
     {
         return MathLib.GetRotationFromUpAngle(GetStandingAngle(), rightSidePointsAway);
+    }
+    public Quaternion GetStandingObstacleRotation()
+    {
+        return Quaternion.LookRotation(Vector3.forward, normal);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

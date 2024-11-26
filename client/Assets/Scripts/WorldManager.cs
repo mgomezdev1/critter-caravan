@@ -81,17 +81,21 @@ public class WorldManager : MonoBehaviour
     }
     public void HandleWorldMouseDown(Ray cameraRay)
     {
-        Obstacle? candidate = GetObstacleAtRay(cameraRay);
-        //Debug.Log($"Attempting to start drag of obstacle {candidate}");
-        if (candidate != null && candidate.CanBeDragged())
+        // For devices which support multiple pointers, ensure we don't try to pick up multiple obstacles at once
+        if (heldObstacle == null)
         {
-            //Debug.Log($"Candidate can be dragged!");
-            heldObstacle = candidate;
-            heldObstacle.BeginDragging();
-        }
-        else
-        {
-            heldObstacle = null;
+            Obstacle? candidate = GetObstacleAtRay(cameraRay);
+            //Debug.Log($"Attempting to start drag of obstacle {candidate}");
+            if (candidate != null && candidate.CanBeDragged())
+            {
+                //Debug.Log($"Candidate can be dragged!");
+                heldObstacle = candidate;
+                heldObstacle.BeginDragging();
+            }
+            else
+            {
+                heldObstacle = null;
+            }
         }
     }
     public void HandleWorldMouseHeld()
@@ -124,11 +128,12 @@ public class WorldManager : MonoBehaviour
     }
 
     private const float INCOMPATIBILITY_DISPLAY_DURATION = 3.0f;
-    private void HighlightIncompatibilities(IObstaclePlacementResult placementResult)
+    private void HighlightIncompatibilities(IObstaclePlacementResult placementResult, bool includeMovedObstacle = false)
     {
-        if (placementResult is ObstacleConflict conflict)
+        foreach (var obstacle in placementResult.GetProblemObstacles())
         {
-            conflict.conflictObstacle.ShowIncompatibility(INCOMPATIBILITY_DISPLAY_DURATION);
+            if (!includeMovedObstacle && obstacle == placementResult.Obstacle) continue;
+            obstacle.ShowIncompatibility(INCOMPATIBILITY_DISPLAY_DURATION);
         }
     }
 

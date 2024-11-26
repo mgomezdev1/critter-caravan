@@ -138,7 +138,7 @@ public class Move
             if (resultSurface != null)
             {
                 position = resultSurface.GetStandingPosition(world);
-                rotation = resultSurface.GetStandingRotation(rotation);
+                rotation = resultSurface.GetStandingEntityRotation(rotation);
                 resultAnchor = 0;
             }
 

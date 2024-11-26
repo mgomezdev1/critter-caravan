@@ -1,19 +1,20 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.LightTransport;
 
 #nullable enable
-#pragma warning disable CS8618
 public interface IObstaclePlacementResult
 {
     public Obstacle Obstacle { get; }
     public bool Success { get; }
     public string Reason { get; }
-    
+
+    public IEnumerable<Obstacle> GetProblemObstacles();
 }
 public class ObstaclePlacementSuccess : IObstaclePlacementResult
 {
@@ -26,19 +27,21 @@ public class ObstaclePlacementSuccess : IObstaclePlacementResult
     {
         _obstacle = obstacle;
     }
+    public IEnumerable<Obstacle> GetProblemObstacles() { yield break; }
 }
-public class ObstaclePlacementFailure : IObstaclePlacementResult
+public class ObstaclePlacementFailure : IObstaclePlacementResult 
 {
-    private readonly Obstacle _obstacle;
-    public Obstacle Obstacle => _obstacle;
+    public readonly Obstacle obstacle;
+    public Obstacle Obstacle => obstacle;
     public bool Success => false;
     public string Reason { get; protected set; }
 
     public ObstaclePlacementFailure(Obstacle obstacle, string reason)
     {
-        _obstacle = obstacle;
+        this.obstacle = obstacle;
         Reason = reason;
     }
+    public virtual IEnumerable<Obstacle> GetProblemObstacles() { yield return obstacle; }
 
     public override string ToString()
     {
@@ -57,6 +60,12 @@ public class ObstacleConflict : ObstaclePlacementFailure
         this.conflictCell = conflictCell;
         Reason = $"{obstacle.ObstacleName} infringes on the area of {conflictObstacle.ObstacleName} on cell {conflictCell}";
     }
+
+    public override IEnumerable<Obstacle> GetProblemObstacles()
+    {
+        yield return obstacle;
+        yield return conflictObstacle;
+    }
 }
 public class ObstacleMissingSurface : ObstaclePlacementFailure
 {
@@ -71,7 +80,28 @@ public class ObstacleMissingSurface : ObstaclePlacementFailure
         Reason = $"{obstacle.ObstacleName} requires a surface below cell {cell} to stand on.";
     }
 }
+public class ObstacleSideEffectFailure : ObstaclePlacementFailure
+{
+    public readonly ObstaclePlacementFailure baseFailure;
+    public ObstacleSideEffectFailure(Obstacle movedObstacle, ObstaclePlacementFailure baseFailure) :
+        base(movedObstacle, string.Empty)
+    {
+        this.baseFailure = baseFailure;
+        Reason = baseFailure.Reason;
+    }
 
+    public override IEnumerable<Obstacle> GetProblemObstacles()
+    {
+        yield return obstacle;
+        foreach (var otherObstacle in baseFailure.GetProblemObstacles())
+        {
+            if (obstacle == otherObstacle) continue;
+            yield return otherObstacle;
+        }
+    }
+}
+
+#pragma warning disable CS8618
 public class Obstacle : CellBehaviour<CellElement>
 {
     [Flags]
@@ -87,6 +117,7 @@ public class Obstacle : CellBehaviour<CellElement>
     [SerializeField] private string obstacleName = "Obstacle";
     [SerializeField] private Requirements requirements = Requirements.None;
     [SerializeField] private Transform moveTarget;
+    [SerializeField] private List<Effector> autoAssignSurfaceEffectors;
     public string ObstacleName => obstacleName;
     public bool IsFixed => isFixed;
     public Requirements Reqs => requirements;
@@ -136,11 +167,11 @@ public class Obstacle : CellBehaviour<CellElement>
         }
     }
 
-    public IObstaclePlacementResult CanBePlaced(Vector2Int origin)
+    public IObstaclePlacementResult CanBePlaced(Vector2Int origin, bool checkSideEffects = true)
     {
-        return CanBePlaced(origin, transform.rotation);
+        return CanBePlaced(origin, transform.rotation, checkSideEffects);
     }
-    public IObstaclePlacementResult CanBePlaced(Vector2Int newOrigin, Quaternion newRotation)
+    public IObstaclePlacementResult CanBePlaced(Vector2Int newOrigin, Quaternion newRotation, bool checkSideEffects = true)
     {
         GridWorld world = World;
         foreach (var occupiedCell in GetOccupiedCells(newOrigin, newRotation))
@@ -159,21 +190,24 @@ public class Obstacle : CellBehaviour<CellElement>
 
         // Side effect check
         Vector2Int currentCell = Cell;
-        if (newOrigin != currentCell || transform.rotation != newRotation)
+        if (checkSideEffects)
         {
-            Vector3 savedPos = transform.position;
-            Quaternion savedRot = transform.rotation;
+            SaveTransform(transform);
             World.SuppressEffectorUpdates = true;
             World.SuppressSurfaceUpdates = true;
             transform.SetPositionAndRotation(World.GetCellCenter(newOrigin), newRotation);
-            InvokeMoved(currentCell, savedRot, newOrigin, newRotation);
+            InvokeMoved(currentCell, transform.rotation, newOrigin, newRotation);
             IObstaclePlacementResult result = World.CheckValidObstacles(this);
-            transform.SetPositionAndRotation(savedPos, savedRot);
-            InvokeMoved(newOrigin, newRotation, currentCell, savedRot);
+            LoadTransform(transform);
+            InvokeMoved(newOrigin, newRotation, currentCell, transform.rotation);
             World.SuppressEffectorUpdates = false;
             World.SuppressSurfaceUpdates = false;
 
-            if (!result.Success) return result;
+            if (result is ObstaclePlacementFailure failure) return new ObstacleSideEffectFailure(this, failure);
+            if (!result.Success)
+            {
+                throw new Exception($"Class inheritance error: {result}.Success = false but it doesn't inherit from ObstaclePlacementFailure.");
+            }
         }
 
         return new ObstaclePlacementSuccess(this);
@@ -198,28 +232,67 @@ public class Obstacle : CellBehaviour<CellElement>
         return new ObstaclePlacementSuccess(this);
     }
 
-    public void ShowIncompatibility(float duration)
+    public bool TrySnapToSurface([NotNullWhen(true)]out Surface? surface)
     {
-        foreach (var renderer in incompatibilityDisplays)
+        surface = World.GetSurface(Cell, transform.up, 30);
+        if (surface == null) { return false; }
+
+        SnapToSurface(surface);
+        return true;
+    }
+    public void SnapToSurface(Surface surface)
+    {
+        SaveTarget();
+        // all obstacles should, by default, be on the center of a cell.
+        // So we'll assume the height of an obstacle matches half a cell's side length
+        float height = World.GridScale / 2;
+        desiredRotation = surface.GetStandingObstacleRotation();
+        transform.SetPositionAndRotation(
+            surface.GetStandingPosition(World) + (Vector3)surface.normal * height,
+            desiredRotation
+        );
+        LoadTarget();
+    }
+
+    [Header("Incompatibility Settings")]
+    [SerializeField] private float incompatibilityInitialAlpha = 0.5f;
+    private float incompatibilityDuration = 1f;
+    private float incompatibilityTimer = 0f;
+
+    public void ShowIncompatibility(float duration, bool allowTimeDecrease = false)
+    {
+        if (incompatibilityTimer <= 0f)
         {
-            StartCoroutine(ShowIncompatibilityCoroutine(renderer, duration));
+            // If coroutine is not running, set it up and run it
+            incompatibilityDuration = duration;
+            incompatibilityTimer = duration;
+            foreach (var renderer in incompatibilityDisplays)
+            {
+                StartCoroutine(ShowIncompatibilityCoroutine(renderer));
+            }
+        }
+        else
+        {
+            // If it is already running, alter values accordingly
+            // We'll ensure that the remaining display time never decreases unless the flag to allow it is set
+            incompatibilityTimer = allowTimeDecrease ? duration : Mathf.Max(duration, incompatibilityTimer);
+            // And we'll always consider the total duration it as if it had just started when this function is called;
+            incompatibilityDuration = incompatibilityTimer;
         }
     }
 
-    public IEnumerator ShowIncompatibilityCoroutine(MeshRenderer renderer, float duration = 1)
+    public IEnumerator ShowIncompatibilityCoroutine(MeshRenderer renderer)
     {
         Color initialColor = renderer.material.color;
         renderer.enabled = true;
-        float remDuration = duration;
-        while (remDuration > 0)
+        while (incompatibilityTimer > 0)
         {
-            float alphaFactor = remDuration / duration;
-            renderer.material.color = initialColor * new Color(1, 1, 1, alphaFactor * alphaFactor);
+            float alphaFactor = incompatibilityTimer / incompatibilityDuration;
+            renderer.material.color = new Color(initialColor.r, initialColor.g, initialColor.b, incompatibilityInitialAlpha * alphaFactor * alphaFactor);
             yield return new WaitForEndOfFrame();
-            remDuration -= Time.deltaTime;
+            incompatibilityTimer -= Time.deltaTime;
         }
         renderer.enabled = false;
-        renderer.material.color = initialColor;
         yield break;
     }
 
@@ -257,10 +330,11 @@ public class Obstacle : CellBehaviour<CellElement>
     private Vector3 DragOffset => Vector3.back * (World.GridDepth * 1);
     private void MoveToOffset()
     {
+        Vector3 initialPosition = moveTarget.position;
         moveTarget.rotation = Quaternion.RotateTowards(moveTarget.rotation, desiredRotation, rotationAngularVelocityDegrees * Time.deltaTime);
 
         Vector3 desiredPosition = transform.position + desiredOffset;
-        Vector3 desiredMovement = desiredPosition - moveTarget.transform.position;
+        Vector3 desiredMovement = desiredPosition - initialPosition;
         float distanceToTarget = desiredMovement.magnitude;
         if (distanceToTarget < 0.03f && dragVelocity.sqrMagnitude < 0.5f * 0.5f)
         {
@@ -281,7 +355,7 @@ public class Obstacle : CellBehaviour<CellElement>
             {
                 dragVelocity = dragVelocity.normalized * maxDragSpeed;
             }
-            moveTarget.position += dragVelocity * Time.deltaTime;
+            moveTarget.position = initialPosition + dragVelocity * Time.deltaTime;
         }        
     }
 
@@ -310,12 +384,18 @@ public class Obstacle : CellBehaviour<CellElement>
             result = new ObstaclePlacementFailure(this, "Invalid Dragging State");
             return false;
         }
+        Vector2Int newCell = World.GetCell(transform.position + desiredOffset);
         dragging = false;
         desiredOffset = Vector3.zero;
-        Vector2Int newCell = Cell;
-        result = CanBePlaced(newCell);
+        result = CanBePlaced(newCell, desiredRotation, draggingStartCell != newCell || draggingStartRotation != transform.rotation);
         if (result.Success)
         {
+            // Move to target cell
+            SaveTarget();
+            Cell = newCell;
+            transform.rotation = desiredRotation;
+            LoadTarget();
+
             // if the obstacle is fixed, we need to update our internal obstacle map.
             if (IsFixed)
             {
@@ -324,18 +404,48 @@ public class Obstacle : CellBehaviour<CellElement>
             }
 
             InvokeMoved(draggingStartCell, draggingStartRotation, newCell, transform.rotation);
+            
+            if (Reqs.HasFlag(Requirements.OnSurface) && TrySnapToSurface(out Surface? s))
+            {
+                Debug.Log($"Snapping {this} to {s}");
+            }
         }
         else
         {
             // Move back to the old spot, but keep the target in its current position.
-            Vector3 savedMoveTargetPos = moveTarget.transform.position;
-            Quaternion savedMovedTargetRot = moveTarget.transform.rotation;
+            SaveTarget();
             Cell = draggingStartCell; // also moves object
             transform.rotation = draggingStartRotation;
-            moveTarget.transform.SetPositionAndRotation(savedMoveTargetPos, savedMovedTargetRot);
+            LoadTarget();
         }
         Debug.Log($"Finished dragging {this}, success={result.Success}, reason=\"{result.Reason}\"");
-        return false;
+        return result.Success;
+    }
+
+    private Stack<Tuple<Vector3, Quaternion>> transformStack = new();
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Tuple<Vector3, Quaternion> SaveTarget()
+    {
+        return SaveTransform(moveTarget);
+    }
+    private Tuple<Vector3, Quaternion> SaveTransform(Transform t)
+    {
+        Tuple<Vector3, Quaternion> result = new(t.position, t.rotation);
+        transformStack.Push(result);
+        Debug.Log($"Saving pos-rot pair {result}");
+        return result;
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Tuple<Vector3, Quaternion> LoadTarget()
+    {
+        return LoadTransform(moveTarget);
+    }
+    private Tuple<Vector3, Quaternion> LoadTransform(Transform t)
+    {
+        Tuple<Vector3, Quaternion> result = transformStack.Pop();
+        t.SetPositionAndRotation(result.Item1, result.Item2);
+        Debug.Log($"Saving pos-rot pair {result}");
+        return result; 
     }
 
     public void DragToRay(Ray aimRay, bool snapToCellCenter = true)
@@ -344,19 +454,13 @@ public class Obstacle : CellBehaviour<CellElement>
         {
             return;
         }
-        Vector2Int targetCell = World.GetCell(point);
 
-        if (targetCell != Cell)
+        if (snapToCellCenter)
         {
-            // teleport to cell without moving the moveTarget
-            Vector3 cachedPos = MoveTarget.position;
-            Cell = targetCell;
-            MoveTarget.position = cachedPos;
+            point = World.GetCellCenter(World.GetCell(point));
         }
 
-        desiredOffset = snapToCellCenter ? 
-            DragOffset :
-            point + DragOffset - transform.position;
+        desiredOffset = point + DragOffset - transform.position;
         Debug.Log($"Dragging {this} to ray, resulting offset = {desiredOffset}");
     }
 

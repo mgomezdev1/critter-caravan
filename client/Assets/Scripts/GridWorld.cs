@@ -76,6 +76,7 @@ public class GridWorld : MonoBehaviour
                 timeFragment -= 1;
                 ExternalInvokeTimeStep();
             }
+            CheckEntityCollisions();
         }
     }
 
@@ -306,6 +307,10 @@ public class GridWorld : MonoBehaviour
         return false;
     }
 
+    HashSet<CellEntity> registeredEntities = new HashSet<CellEntity>();
+    public void RegisterEntity(CellEntity entity) { registeredEntities.Add(entity); }
+    public bool DeregisterEntity(CellEntity entity) { return registeredEntities.Remove(entity); }
+
     public IEnumerable<IEffector> GetEffectors(Vector2Int cell, EffectorFlags flags = EffectorFlags.All)
     {
         if (!effectors.TryGetValue(cell, out var cellEffectors))
@@ -392,6 +397,33 @@ public class GridWorld : MonoBehaviour
     {
         step++;
         OnTimeStep.Invoke();
+    }
+
+    public void CheckEntityCollisions()
+    {
+        // This has O(n^2) complexity, it can be optimized by using spatial storage methods
+        CellEntity[] entities = registeredEntities.ToArray();
+        for (int i = 0; i < entities.Length; i++)
+        {
+            var entity = entities[i];
+            if (!entity.IsPlaying()) continue;
+            if (entity.EntityRadius == 0) continue; // we assume that if the radius is 0, it's not meant to collide
+            for (int j = i + 1; j < entities.Length; j++)
+            {
+                var otherEntity = entities[j];
+                if (!otherEntity.IsPlaying()) continue;
+                if (entity == otherEntity) continue;
+                if (otherEntity.EntityRadius == 0) continue;
+                // we're using spherical models
+
+                float reachDistance = entity.EntityRadius + otherEntity.EntityRadius;
+                Vector3 delta = entity.Center - otherEntity.Center;
+                if (delta.sqrMagnitude >= reachDistance * reachDistance) continue;
+
+                entity.Die();
+                otherEntity.Die();
+            }
+        }
     }
 
     // CAMERA LOGIC
@@ -506,12 +538,15 @@ public class GridWorld : MonoBehaviour
 
     public IEnumerable<Obstacle> GetAllObstacles()
     {
+        int cnt = 0;
         foreach (var kvp in fixedObstacles)
         {
+            cnt++;
             yield return kvp.Value;
         }
         foreach (var obstacle in dynamicObstacles)
         {
+            cnt++;
             yield return obstacle;
         }
     }
@@ -520,6 +555,7 @@ public class GridWorld : MonoBehaviour
     {
         foreach (var obstacle in GetAllObstacles())
         {
+            Debug.Log($"Checking side-effect validity of {obstacle}");
             if (obstacle == lastChanged) continue;
             var result = obstacle.CheckValidity();
             if (!result.Success) return result;

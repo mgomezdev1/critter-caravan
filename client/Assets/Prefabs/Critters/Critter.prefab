@@ -26,12 +26,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1983109189142606396}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: -0.111, z: 0.252}
-  m_LocalScale: {x: 0.25624532, y: 0.25624532, z: 0.25624532}
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -0.4199998, y: 0.48166668, z: 0}
+  m_LocalScale: {x: 0.42707545, y: 0.42707548, z: 0.42707545}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 5900385328588619466}
+  m_Father: {fileID: 3513986854651795698}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &7600006086354207685
 MeshFilter:
@@ -86,6 +86,59 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &5684209597815614405
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1701502537430574257}
+  - component: {fileID: 6053784451133920137}
+  m_Layer: 0
+  m_Name: KillTrigger
+  m_TagString: KillCritter
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1701502537430574257
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5684209597815614405}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5900385328588619466}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &6053784451133920137
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5684209597815614405}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.50000024
+  m_Center: {x: -0.0000009536748, y: 0, z: 0}
 --- !u!1 &6337407076602766898
 GameObject:
   m_ObjectHideFlags: 0
@@ -97,10 +150,9 @@ GameObject:
   - component: {fileID: 3513986854651795698}
   - component: {fileID: 7541876232035573416}
   - component: {fileID: 7432926559212479821}
-  - component: {fileID: 4250664337976834328}
   m_Layer: 0
-  m_Name: Collider (CritterKillTrigger)
-  m_TagString: KillCritter
+  m_Name: Mesh
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -113,12 +165,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6337407076602766898}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0.6, z: 0}
-  m_LocalScale: {x: 0.6, y: 0.6, z: 0.6}
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: -0.5, z: 0}
+  m_LocalScale: {x: 0.6, y: 0.5, z: 0.6}
   m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 7286001888886881052}
+  m_Children:
+  - {fileID: 2351257601906797089}
+  m_Father: {fileID: 5900385328588619466}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!33 &7541876232035573416
 MeshFilter:
@@ -173,29 +226,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &4250664337976834328
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6337407076602766898}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &7167752007944289802
 GameObject:
   m_ObjectHideFlags: 0
@@ -224,8 +254,7 @@ Transform:
   m_LocalPosition: {x: 0, y: -1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 3513986854651795698}
+  m_Children: []
   m_Father: {fileID: 5900385328588619466}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7331381673723203901
@@ -241,6 +270,7 @@ GameObject:
   - component: {fileID: 6510891609135642051}
   - component: {fileID: 3731081693509628510}
   - component: {fileID: 4173271375148989735}
+  - component: {fileID: 9108457262910503840}
   m_Layer: 0
   m_Name: Critter
   m_TagString: Untagged
@@ -262,7 +292,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7286001888886881052}
-  - {fileID: 2351257601906797089}
+  - {fileID: 3513986854651795698}
+  - {fileID: 1701502537430574257}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!114 &5457440849085482170
@@ -277,7 +308,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e91c2ecc574ac147af2e4226b0a3a62, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: {fileID: 0}
   meshes:
   - {fileID: 7432926559212479821}
 --- !u!114 &6510891609135642051
@@ -293,9 +323,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   world: {fileID: 0}
-  cell: {x: 2, y: 1}
-  snapping: 0
-  snapOffset: {x: 0, y: 0, z: 0}
   OnColorChanged:
     m_PersistentCalls:
       m_Calls:
@@ -316,7 +343,6 @@ MonoBehaviour:
   intangibleWallFlags: 2
   maxWalkSlopeAngle: 60
   maxFallHeight: 1
-  fallHeight: 0
 --- !u!114 &3731081693509628510
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -353,3 +379,24 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!135 &9108457262910503840
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7331381673723203901}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.45
+  m_Center: {x: 0, y: -0.525, z: 0}

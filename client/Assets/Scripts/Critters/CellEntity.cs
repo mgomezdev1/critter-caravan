@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using Utils;
 using UnityEngine;
+using Unity.VisualScripting;
+using System.Drawing;
+using System.Runtime.CompilerServices;
 
 #nullable enable
 #pragma warning disable CS8618
@@ -14,8 +17,8 @@ public class CellEntity : CellElement, IResettable
     public Vector3 Center => (transform.position + floorPointRoot.position) / 2;
     public Vector3 FootPosition => floorPointRoot.position;
     public float Height => (transform.position - floorPointRoot.position).magnitude;
-    
-    // Movement properties
+
+    [Header("Movement")]
     [SerializeField] private Surface.Flags intangibleWallFlags = Surface.Flags.Virtual;
     public Surface.Flags IntangibleWallFlags => intangibleWallFlags;
     [SerializeField] private float maxWalkSlopeAngle = 60;
@@ -38,6 +41,10 @@ public class CellEntity : CellElement, IResettable
     public bool Falling => FallHeight > 0;
     public int FallHeight { get; set; }
 
+    [Header("Interaction")]
+    [SerializeField] private float entityRadius = 0.4f;
+    public float EntityRadius => entityRadius;
+
     public override Vector2Int Cell
     {
         get
@@ -59,6 +66,7 @@ public class CellEntity : CellElement, IResettable
     {
         base.Start();
         StandingSurface = World.GetSurface(cell, transform.up);
+        World.RegisterEntity(this);
         AnimateSpawn();
     }
 
@@ -67,7 +75,7 @@ public class CellEntity : CellElement, IResettable
     {
         base.Update();
         EntityMove? move = CurrentMove;
-        if (move != null)
+        if (move != null && IsPlaying())
         {
             float moveTimer = Mathf.Clamp01(1 - World.TimeFragment);
             float moveSegment = Time.deltaTime * World.TimeSpeed / moveTimer;
@@ -78,6 +86,11 @@ public class CellEntity : CellElement, IResettable
             );
             AnimateVelocity((transform.position - oldPosition) / Time.deltaTime);
         }
+    }
+
+    private void OnDestroy()
+    {
+        World.DeregisterEntity(this);
     }
 
     private Vector3 adjustedMovePosition = Vector3.zero;
@@ -152,18 +165,15 @@ public class CellEntity : CellElement, IResettable
         yield break;
     }
 
-    public void OnCollisionEnter(Collision collision)
-    {
-        // Check if we hit something that can kill us
-        if (collision.collider.gameObject.CompareTag("KillCritter"))
-        {
-            Die();
-        }
-    }
-
     public void HandleReset()
     {
         Destroy(gameObject);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsPlaying()
+    {
+        return alive && !goalReached;
     }
 
     /// <summary>
@@ -258,6 +268,8 @@ public class CellEntity : CellElement, IResettable
     public void OnDrawGizmosSelected()
     {
         DrawingLib.DrawCritterGizmo(floorPointRoot);
+        Gizmos.color = new UnityEngine.Color(1, 0.5f, 0.5f);
+        Gizmos.DrawWireSphere(Center, EntityRadius);
     }
 
     /* ****************************** *
