@@ -22,10 +22,6 @@ public class CellBehaviour<T> : MonoBehaviour where T : CellElement
 
     public void InvokeMoved(Vector2Int originCell, Quaternion originRotation, Vector2Int targetCell, Quaternion targetRotation)
     {
-        CellComponent.MarkPositionDirty();
-        foreach (IMovable movable in CellComponent.GetComponents<IMovable>())
-        {
-            movable.AfterMove(originCell, originRotation, targetCell, targetRotation);
-        }
+        CellComponent.InvokeMoved(originCell, originRotation, targetCell, targetRotation);
     }
 }

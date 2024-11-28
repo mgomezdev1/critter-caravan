@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LineEmitter : CellBehaviour<CellElement>, IMovable
+public class LineEmitter : CellBehaviour<Obstacle>, IMovable
 {
     [SerializeField] Vector2Int propagationVector = Vector2Int.up;
     [SerializeField] Vector2Int startOffset = Vector2Int.zero;
@@ -26,6 +26,8 @@ public class LineEmitter : CellBehaviour<CellElement>, IMovable
     {
         RespawnLine();
         World.OnSurfacesUpdated.AddListener(RespawnLineSafe);
+        CellComponent.OnDragStart.AddListener(DestroySpawnedObjects);
+        // no need to hook up OnDragEnd because IMovable's AfterMove handles a broader case.
     }
 
     // Update is called once per frame
@@ -78,7 +80,8 @@ public class LineEmitter : CellBehaviour<CellElement>, IMovable
             newSpawnedInstance.transform.SetPositionAndRotation(World.GetCellCenter(cells[i]), spawnRotation);
             if (newSpawnedInstance.TryGetComponent(out CellElement spawnedCellElement))
             {
-                spawnedCellElement.World = World;
+                spawnedCellElement.Initialize(World);
+                spawnedCellElement.Generated = true;
                 if (propagateColor)
                 {
                     spawnedCellElement.Color = CellComponent.Color;

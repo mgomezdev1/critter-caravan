@@ -187,6 +187,10 @@ PrefabInstance:
       propertyPath: snapping
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8371547802833726500, guid: 2047c0b37e941784d93ad7424a0704b8, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 9075939723519792956, guid: 2047c0b37e941784d93ad7424a0704b8, type: 3}
       propertyPath: m_Name
       value: RampInner (1x1) (2)
@@ -338,6 +342,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4987851994236583561, guid: 7cc22c385efbb584b9dd66c4b158cc07, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 5539966021108745617, guid: 7cc22c385efbb584b9dd66c4b158cc07, type: 3}
       propertyPath: m_Name
       value: RampOuter (1x1) (2)
@@ -999,6 +1007,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SolidTile (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 3833101782134411999, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: world
       value: 
@@ -1065,6 +1077,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SolidTile (12)
       objectReference: {fileID: 0}
+    - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 3833101782134411999, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: world
       value: 
@@ -1136,6 +1152,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SolidTile (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 3833101782134411999, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: world
       value: 
@@ -1202,6 +1222,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SolidTile (13)
       objectReference: {fileID: 0}
+    - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 3833101782134411999, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: world
       value: 
@@ -1263,6 +1287,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SolidTile (4)
       objectReference: {fileID: 0}
+    - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 3833101782134411999, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: world
       value: 
@@ -1380,6 +1408,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: -90
       objectReference: {fileID: 0}
+    - target: {fileID: 4987851994236583561, guid: 7cc22c385efbb584b9dd66c4b158cc07, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 5539966021108745617, guid: 7cc22c385efbb584b9dd66c4b158cc07, type: 3}
       propertyPath: m_Name
       value: RampOuter (1x1) (1)
@@ -1551,6 +1583,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SolidTile (5)
       objectReference: {fileID: 0}
+    - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 3833101782134411999, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: world
       value: 
@@ -1648,6 +1684,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 90
       objectReference: {fileID: 0}
+    - target: {fileID: 4987851994236583561, guid: 7cc22c385efbb584b9dd66c4b158cc07, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 5539966021108745617, guid: 7cc22c385efbb584b9dd66c4b158cc07, type: 3}
       propertyPath: m_Name
       value: RampOuter (1x1) (3)
@@ -1749,6 +1789,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SolidTile (8)
       objectReference: {fileID: 0}
+    - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 3833101782134411999, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: world
       value: 
@@ -1854,6 +1898,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: GlassTile (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 9219655570931472476, guid: c8f9a2e716cdb424aa31ed3ff74294dd, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1871,6 +1919,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SolidTile (9)
       objectReference: {fileID: 0}
+    - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 3833101782134411999, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: world
       value: 
@@ -1980,6 +2032,10 @@ PrefabInstance:
       propertyPath: snapping
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8371547802833726500, guid: 2047c0b37e941784d93ad7424a0704b8, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 9075939723519792956, guid: 2047c0b37e941784d93ad7424a0704b8, type: 3}
       propertyPath: m_Name
       value: RampInner (1x1) (1)
@@ -2010,6 +2066,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SolidTile (10)
       objectReference: {fileID: 0}
+    - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 3833101782134411999, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: world
       value: 
@@ -2071,6 +2131,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SolidTile (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 3833101782134411999, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: world
       value: 
@@ -2186,6 +2250,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: GlassTile (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 9219655570931472476, guid: c8f9a2e716cdb424aa31ed3ff74294dd, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2365,6 +2433,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SolidTile (11)
       objectReference: {fileID: 0}
+    - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 3833101782134411999, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: world
       value: 
@@ -2431,6 +2503,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SolidTile (7)
       objectReference: {fileID: 0}
+    - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 3833101782134411999, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: world
       value: 
@@ -2586,6 +2662,10 @@ PrefabInstance:
       value: SolidTile (14)
       objectReference: {fileID: 0}
     - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
+    - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: isFixed
       value: 0
       objectReference: {fileID: 0}
@@ -2660,6 +2740,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SolidTile (6)
       objectReference: {fileID: 0}
+    - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 3833101782134411999, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: world
       value: 
@@ -2733,6 +2817,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3266022108492262959, guid: cfb144a3191efc749adcdc911e971fe3, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 814877158}
     - target: {fileID: 5261420831893328023, guid: cfb144a3191efc749adcdc911e971fe3, type: 3}
       propertyPath: keepMoveRotation
       value: 0
@@ -2843,6 +2931,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Campsite
       objectReference: {fileID: 0}
+    - target: {fileID: 5197759885480280529, guid: 106e483804781614eaca91a97d125c54, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 8127379981581859160, guid: 106e483804781614eaca91a97d125c54, type: 3}
       propertyPath: world
       value: 
@@ -2995,6 +3087,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: GlassTile
       objectReference: {fileID: 0}
+    - target: {fileID: 9219655570931472476, guid: c8f9a2e716cdb424aa31ed3ff74294dd, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3008,6 +3104,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 391580078}
     m_Modifications:
+    - target: {fileID: 1713405006553826134, guid: 753540ce5a4990a499609825e2d8f5eb, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 1713405006553826134, guid: 753540ce5a4990a499609825e2d8f5eb, type: 3}
       propertyPath: isFixed
       value: 0
@@ -3129,6 +3229,10 @@ PrefabInstance:
       propertyPath: world
       value: 
       objectReference: {fileID: 391580079}
+    - target: {fileID: 8371547802833726500, guid: 2047c0b37e941784d93ad7424a0704b8, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 9075939723519792956, guid: 2047c0b37e941784d93ad7424a0704b8, type: 3}
       propertyPath: m_Name
       value: RampInner (1x1)
@@ -3191,6 +3295,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 391580079}
     - target: {fileID: 8500731662016917601, guid: d18cd2302c4605e48a9f07f445ad130e, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
+    - target: {fileID: 8500731662016917601, guid: d18cd2302c4605e48a9f07f445ad130e, type: 3}
       propertyPath: isFixed
       value: 0
       objectReference: {fileID: 0}
@@ -3215,6 +3323,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SolidTile
       objectReference: {fileID: 0}
+    - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 3833101782134411999, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: world
       value: 
@@ -3316,6 +3428,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Spawner
       objectReference: {fileID: 0}
+    - target: {fileID: 5519156395400112468, guid: e8aa1cad8cb761142ba9a7fd4a82a111, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 8394601283578450397, guid: e8aa1cad8cb761142ba9a7fd4a82a111, type: 3}
       propertyPath: color
       value: 
@@ -3390,6 +3506,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: BeamEmitter
       objectReference: {fileID: 0}
+    - target: {fileID: 5344718762724326327, guid: e59e3c0b681a84642b81c0d1c6312003, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 8269778239112676158, guid: e59e3c0b681a84642b81c0d1c6312003, type: 3}
       propertyPath: world
       value: 
@@ -3459,6 +3579,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Beam_Tail
       objectReference: {fileID: 0}
+    - target: {fileID: 7999957705712515472, guid: 36ed27c739eb00e4390abec17f6cb8b4, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 814877158}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3517,6 +3641,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6316227414259105712, guid: e1f75c4244162ce4c8c9ee7ebda47cbb, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 814877158}
     - target: {fileID: 6808947953326441640, guid: e1f75c4244162ce4c8c9ee7ebda47cbb, type: 3}
       propertyPath: m_Name
       value: Beam_Head
@@ -3587,6 +3715,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4987851994236583561, guid: 7cc22c385efbb584b9dd66c4b158cc07, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 391580079}
     - target: {fileID: 5539966021108745617, guid: 7cc22c385efbb584b9dd66c4b158cc07, type: 3}
       propertyPath: m_Name
       value: RampOuter (1x1)

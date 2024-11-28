@@ -5002,6 +5002,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Beam_Body Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 6348745474318690539, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
+      propertyPath: occupiedOffsets.Array.size
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6945208084812791972, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -5021,6 +5025,18 @@ PrefabInstance:
     - target: {fileID: 6985962926821544034, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
       propertyPath: snapping
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8422652309603918343, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8422652309603918343, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8422652309603918343, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 5474380085747729075, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}

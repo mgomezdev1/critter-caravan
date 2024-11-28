@@ -203,7 +203,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 604733987949031877}
-  - component: {fileID: 6985962926821544034}
   - component: {fileID: 6945208084812791972}
   - component: {fileID: 6348745474318690539}
   m_Layer: 0
@@ -229,35 +228,6 @@ Transform:
   - {fileID: 8422652309603918343}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6985962926821544034
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5891490168069182451}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b4f8e8b50c04dcf4a8ffcbb46e3b7317, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  world: {fileID: 0}
-  OnColorChanged:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 6945208084812791972}
-        m_TargetAssemblyTypeName: CritterMaterialColorUtil, Assembly-CSharp
-        m_MethodName: SetColor
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-  color: {fileID: 11400000, guid: bd9f9181ceb7ea74ab58de9b5ee31612, type: 2}
 --- !u!114 &6945208084812791972
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -284,6 +254,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1e2961bc6fb128489c95f506c47008a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  world: {fileID: 0}
+  OnColorChanged:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 6945208084812791972}
+        m_TargetAssemblyTypeName: CritterMaterialColorUtil, Assembly-CSharp
+        m_MethodName: UpdateColor
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  color: {fileID: 11400000, guid: bd9f9181ceb7ea74ab58de9b5ee31612, type: 2}
   occupiedOffsets:
   - {x: 0, y: 0}
   incompatibilityDisplays:
@@ -292,6 +279,8 @@ MonoBehaviour:
   obstacleName: Obstacle
   requirements: 0
   moveTarget: {fileID: 8422652309603918343}
+  autoAssignSurfaceEffectors: []
+  incompatibilityInitialAlpha: 0.5
   dragAcceleration: 150
   maxDragSpeed: 48
   dragFriction: 8

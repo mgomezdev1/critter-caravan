@@ -35,6 +35,8 @@ public class CellElement : MonoBehaviour
     }
     protected bool cellValueDirty = true;
 
+    public bool Generated { get; set; } = false;
+
     // Color
     public UnityEvent<CritterColor> OnColorChanged = new();
     [SerializeField] protected CritterColor color;
@@ -77,6 +79,10 @@ public class CellElement : MonoBehaviour
             Debug.LogWarning($"Cell element {gameObject.name} has no grid reference.");
             return;
         }
+        if (!Application.isPlaying)
+        {
+            this.cell = world.GetCell(transform.position);
+        }
     }
 
     public virtual void HandleTimeStep()
@@ -93,5 +99,14 @@ public class CellElement : MonoBehaviour
     public void MarkPositionDirty()
     {
         cellValueDirty = true;
+    }
+
+    public void InvokeMoved(Vector2Int originCell, Quaternion originRotation, Vector2Int targetCell, Quaternion targetRotation)
+    {
+        MarkPositionDirty();
+        foreach (IMovable movable in GetComponents<IMovable>())
+        {
+            movable.AfterMove(originCell, originRotation, targetCell, targetRotation);
+        }
     }
 }

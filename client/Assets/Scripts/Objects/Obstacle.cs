@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.LightTransport;
 
 #nullable enable
@@ -102,7 +103,7 @@ public class ObstacleSideEffectFailure : ObstaclePlacementFailure
 }
 
 #pragma warning disable CS8618
-public class Obstacle : CellBehaviour<CellElement>
+public class Obstacle : CellElement
 {
     [Flags]
     public enum Requirements
@@ -123,25 +124,31 @@ public class Obstacle : CellBehaviour<CellElement>
     public Requirements Reqs => requirements;
     public Transform MoveTarget => moveTarget;
 
+    // EVENTS
+    public UnityEvent OnDragStart = new();
+    public UnityEvent<bool> OnDragEnd = new();
+
     protected override void Awake()
     {
         base.Awake();
         desiredRotation = moveTarget.rotation;
     }
 
-    private void Start()
+    protected override void Start()
     {
+        base.Start();
         World.RegisterObstacle(this);
     }
 
-    private void Update()
+    protected override void Update()
     {
+        base.Update();
         MoveToOffset();
     }
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.yellow;
+        Gizmos.color = UnityEngine.Color.yellow;
         foreach (var offset in occupiedOffsets)
         {
             Vector3 center = World.GetCellCenter(Cell + offset);
@@ -382,6 +389,7 @@ public class Obstacle : CellBehaviour<CellElement>
         desiredOffset = DragOffset;
         desiredRotation = transform.rotation;
         dragging = true;
+        OnDragStart.Invoke();
     }
 
     public bool EndDragging()
@@ -396,6 +404,7 @@ public class Obstacle : CellBehaviour<CellElement>
             result = new ObstaclePlacementFailure(this, "Invalid Dragging State");
             return false;
         }
+
         Vector2Int newCell = World.GetCell(transform.position + desiredOffset);
         dragging = false;
         desiredOffset = Vector3.zero;
@@ -432,6 +441,7 @@ public class Obstacle : CellBehaviour<CellElement>
             LoadTarget();
         }
         Debug.Log($"Finished dragging {this}, success={result.Success}, reason=\"{result.Reason}\"");
+        OnDragEnd.Invoke(result.Success);
         return result.Success;
     }
 

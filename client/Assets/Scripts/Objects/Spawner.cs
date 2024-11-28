@@ -98,6 +98,7 @@ public class Spawner : CellBehaviour<CellElement>, IResettable
         if (newObject.TryGetComponent(out CellElement spawnedCellElement))
         {
             spawnedCellElement.Initialize(World);
+            spawnedCellElement.Generated = true;
             if (inheritColor)
             {
                 spawnedCellElement.Color = CellComponent.Color;
