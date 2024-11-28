@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
@@ -95,6 +97,11 @@ public class GridWorld : MonoBehaviour
             (cell.y + 0.5f) * gridScale,
             0
         );
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Vector3 GetCellCenter(Vector3 position)
+    {
+        return GetCellCenter(GetCell(position));
     }
 
     private readonly Dictionary<Vector2Int, HashSet<Surface>> surfaces = new();
@@ -538,17 +545,18 @@ public class GridWorld : MonoBehaviour
 
     public IEnumerable<Obstacle> GetAllObstacles()
     {
-        int cnt = 0;
         foreach (var kvp in fixedObstacles)
         {
-            cnt++;
             yield return kvp.Value;
         }
         foreach (var obstacle in dynamicObstacles)
         {
-            cnt++;
             yield return obstacle;
         }
+    }
+    public IEnumerable<Obstacle> GetDynamicObstacles()
+    {
+        foreach (var obstacle in dynamicObstacles) yield return obstacle;
     }
 
     public IObstaclePlacementResult CheckValidObstacles(Obstacle lastChanged)
@@ -571,6 +579,89 @@ public class GridWorld : MonoBehaviour
         {
             resettable.HandleReset();
         }
+    }
+
+    /* ****************** *
+     *         UX         *
+     * ****************** */
+    [Header("UX")]
+    [SerializeField] private GameObject cellHighlightPrefab;
+    [SerializeField] private AnimationCurve highlightEntryScaleCurve = new();
+    [SerializeField] private AnimationCurve highlightFadeoutScaleCurve = new();
+    [SerializeField] private float highlightEntryTime = 0.5f;
+    [SerializeField] private float highlightFadeoutTime = 0.25f;
+    public void HighlightCell(Vector2Int cell, float duration)
+    {
+        HighlightPosition(GetCellCenter(cell), duration);
+    }
+    public void HighlightPosition(Vector3 position, float duration)
+    {
+        HighlightPosition(position, Quaternion.identity, Vector3.one, duration);
+    }
+    public void HighlightTransform(Transform t, float duration)
+    {
+        HighlightPosition(t.position, t.rotation, Vector3.one, duration, t);
+    }
+    public void HighlightPosition(Vector3 position, Quaternion rotation, Vector3 scale, float duration, Transform? parent = null)
+    {
+        StartCoroutine(HighlightPositionCoroutine(position, rotation, scale, duration, parent));
+    }
+
+    private IEnumerator HighlightPositionCoroutine(Vector3 position, Quaternion rotation, Vector3 scale, float duration, Transform? parent)
+    {
+        GameObject go = Instantiate(cellHighlightPrefab, parent);
+        go.transform.SetPositionAndRotation(position, rotation);
+        scale.Scale(go.transform.localScale);
+        go.transform.localScale = scale;
+        float entryT = highlightEntryTime;
+        float fadeoutT = highlightFadeoutTime;
+        float totalRefTime = entryT + fadeoutT;
+        if (duration < totalRefTime)
+        {
+            entryT *= duration / totalRefTime;
+            fadeoutT *= duration / totalRefTime;
+        }
+        yield return AnimateHighlightEntry(go, entryT);
+        yield return new WaitForSeconds(duration - entryT - fadeoutT);
+        yield return AnimateHighlightFadeout(go, fadeoutT, true);
+    }
+    private IEnumerator AnimateHighlightEntry(GameObject highlight, float duration)
+    {
+        float timer = 0;
+        Vector3 scale = highlight.transform.localScale;
+        while (timer < duration)
+        {
+            float t = timer / duration;
+            float scaleFactor = highlightEntryScaleCurve.Evaluate(t);
+            highlight.transform.localScale = scale * scaleFactor;
+            yield return new WaitForEndOfFrame();
+            timer += Time.deltaTime;
+        }
+    }
+    private IEnumerator AnimateHighlightFadeout(GameObject highlight, float duration, bool destroyAtEnd = true)
+    {
+        float timer = 0;
+        Vector3 scale = highlight.transform.localScale;
+        while (timer < duration)
+        {
+            float t = timer / duration;
+            float scaleFactor = highlightFadeoutScaleCurve.Evaluate(t);
+            highlight.transform.localScale = scale * scaleFactor;
+            yield return new WaitForEndOfFrame();
+            timer += Time.deltaTime;
+        }
+        if (destroyAtEnd) { Destroy(highlight); }
+    }
+    public GameObject HighlightTransform(Transform target)
+    {
+        GameObject highlight = Instantiate(cellHighlightPrefab, target);
+        highlight.transform.SetPositionAndRotation(highlight.transform.position, highlight.transform.rotation);
+        StartCoroutine(AnimateHighlightEntry(highlight, highlightEntryTime));
+        return highlight;
+    }
+    public void EndHighlight(GameObject highlight)
+    {
+        StartCoroutine(AnimateHighlightFadeout(highlight, highlightFadeoutTime, true));
     }
 }
 

@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
+using static UnityEngine.InputSystem.InputAction;
 
 #nullable enable
 #pragma warning disable CS8618
@@ -46,7 +48,15 @@ public class WorldManager : MonoBehaviour
     void Update()
     {
         if (gameMode == GameMode.Setup || gameMode == GameMode.LevelEdit) SimulateMouseEvents();
-        
+    }
+
+    public void HandleRotateCW(CallbackContext ctx)
+    {
+        if (ctx.performed) { RotateSelection(1); }
+    }
+    public void HandleRotateCCW(CallbackContext ctx)
+    {
+        if (ctx.performed) { RotateSelection(-1); }
     }
 
     private Obstacle? heldObstacle = null;
@@ -86,7 +96,7 @@ public class WorldManager : MonoBehaviour
         {
             Obstacle? candidate = GetObstacleAtRay(cameraRay);
             //Debug.Log($"Attempting to start drag of obstacle {candidate}");
-            if (candidate != null && candidate.CanBeDragged())
+            if (candidate != null && candidate.CanBeMoved())
             {
                 //Debug.Log($"Candidate can be dragged!");
                 heldObstacle = candidate;
@@ -96,6 +106,8 @@ public class WorldManager : MonoBehaviour
             {
                 heldObstacle = null;
             }
+
+            ChangeSelection(candidate);
         }
     }
     public void HandleWorldMouseHeld()
@@ -120,16 +132,41 @@ public class WorldManager : MonoBehaviour
         {
             if (!heldObstacle.EndDragging(out IObstaclePlacementResult placementResult))
             {
-                DisplayMessage(placementResult.Reason);
-                HighlightIncompatibilities(placementResult);
+                HandlePlacementError(placementResult);
             }
             heldObstacle = null;
         }
     }
 
-    private const float INCOMPATIBILITY_DISPLAY_DURATION = 3.0f;
-    private void HighlightIncompatibilities(IObstaclePlacementResult placementResult, bool includeMovedObstacle = false)
+    private Obstacle? selectedObstacle;
+    private GameObject? activeSelectHighlight;
+    public void ChangeSelection(Obstacle? newSelectTarget)
     {
+        if (newSelectTarget == selectedObstacle) return;
+
+        if (activeSelectHighlight != null)
+        {
+            World.EndHighlight(activeSelectHighlight);
+            activeSelectHighlight = null;
+        }
+        selectedObstacle = newSelectTarget;
+        if (selectedObstacle != null)
+        {
+            activeSelectHighlight = World.HighlightTransform(selectedObstacle.MoveTarget);
+        }
+    }
+
+    public void RotateSelection(int delta = 1)
+    {
+        if (selectedObstacle == null) return;
+        if (!selectedObstacle.CanBeMoved()) return;
+        selectedObstacle.Rotate(delta);
+    }
+
+    private const float INCOMPATIBILITY_DISPLAY_DURATION = 3.0f;
+    public void HandlePlacementError(IObstaclePlacementResult placementResult, bool includeMovedObstacle = false, bool announceErrorReason = true)
+    {
+        if (announceErrorReason) DisplayMessage(placementResult.Reason);
         foreach (var obstacle in placementResult.GetProblemObstacles())
         {
             if (!includeMovedObstacle && obstacle == placementResult.Obstacle) continue;
@@ -172,6 +209,13 @@ public class WorldManager : MonoBehaviour
 
         ResetScenario();
         this.gameMode = gameMode;
+        if (gameMode == GameMode.Setup)
+        {
+            foreach (var obstacle in activeWorld.GetDynamicObstacles())
+            {
+                activeWorld.HighlightCell(obstacle.Cell, 1);
+            }
+        }
         return true;
     }
 

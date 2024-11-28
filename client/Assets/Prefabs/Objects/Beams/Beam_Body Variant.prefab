@@ -5003,6 +5003,10 @@ PrefabInstance:
       value: Beam_Body Variant
       objectReference: {fileID: 0}
     - target: {fileID: 6945208084812791972, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6945208084812791972, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}
       propertyPath: 'meshes.Array.data[0]'
       value: 
       objectReference: {fileID: 7760671738485329123}
@@ -5066,6 +5070,7 @@ MonoBehaviour:
   verticalAnchor: 0.5
   moveFlags: 0
   moveMaxSurfaceSnapAngle: 60
+  movePriority: 0
 --- !u!4 &9019594913618867969 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 604733987949031877, guid: 8d9ccd5abd38d6540ada2a0afed0ba14, type: 3}

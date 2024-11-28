@@ -212,6 +212,22 @@ public static class MathLib
         }
     }
 
+    public static Quaternion SnapToOrtho(Quaternion rotation)
+    {
+        Vector3 angles = rotation.eulerAngles;
+        return Quaternion.Euler(
+            SnapToMultipleOf(angles.x, 90),
+            SnapToMultipleOf(angles.y, 90),
+            SnapToMultipleOf(angles.z, 90)
+        );
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float SnapToMultipleOf(float value, float factor)
+    {
+        int multiplicand = Mathf.RoundToInt(value / factor);
+        return factor * multiplicand;
+    }
+
     internal static Quaternion MatchOrientation(Quaternion rotation, Quaternion orientationReference)
     {
         bool rightSidePointsAway = MathLib.RightSidePointsAway(orientationReference);

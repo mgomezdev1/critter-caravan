@@ -213,6 +213,7 @@ public class Obstacle : CellBehaviour<CellElement>
         return new ObstaclePlacementSuccess(this);
     }
 
+    const float MAX_SURFACE_NORMAL_SNAP = 80;
     public IObstaclePlacementResult CheckValidity()
     {
         return CheckValidity(Cell, transform.rotation);
@@ -222,7 +223,7 @@ public class Obstacle : CellBehaviour<CellElement>
         if (Reqs.HasFlag(Requirements.OnSurface))
         {
             Vector2 rotatedNormal = newRotation * Vector2.up;
-            Surface? surface = World.GetSurface(newOrigin, rotatedNormal, 30, Surface.Flags.Virtual);
+            Surface? surface = World.GetSurface(newOrigin, rotatedNormal, MAX_SURFACE_NORMAL_SNAP, Surface.Flags.Virtual);
             if (surface == null)
             {
                 return new ObstacleMissingSurface(this, newOrigin, rotatedNormal);
@@ -234,7 +235,7 @@ public class Obstacle : CellBehaviour<CellElement>
 
     public bool TrySnapToSurface([NotNullWhen(true)]out Surface? surface)
     {
-        surface = World.GetSurface(Cell, transform.up, 30);
+        surface = World.GetSurface(Cell, transform.up, MAX_SURFACE_NORMAL_SNAP);
         if (surface == null) { return false; }
 
         SnapToSurface(surface);
@@ -306,7 +307,7 @@ public class Obstacle : CellBehaviour<CellElement>
     private Vector2Int draggingStartCell = Vector2Int.zero;
     private Quaternion desiredRotation = Quaternion.identity;
     private Quaternion draggingStartRotation = Quaternion.identity;
-    public bool CanBeDragged()
+    public bool CanBeMoved()
     {
         switch (WorldManager.Instance.GameMode)
         {
@@ -366,9 +367,20 @@ public class Obstacle : CellBehaviour<CellElement>
             Debug.LogError($"Dragging on {gameObject.name} started before a previous dragging operation was concluded.");
             return;
         }
-        desiredOffset = DragOffset;
+
         draggingStartCell = Cell;
         draggingStartRotation = transform.rotation;
+
+        // When we start dragging, snap to cell and snap rotation
+        SaveTarget();
+        transform.SetPositionAndRotation(
+            World.GetCellCenter(Cell),
+            MathLib.SnapToOrtho(transform.rotation)
+        );
+        LoadTarget();
+
+        desiredOffset = DragOffset;
+        desiredRotation = transform.rotation;
         dragging = true;
     }
 
@@ -416,6 +428,7 @@ public class Obstacle : CellBehaviour<CellElement>
             SaveTarget();
             Cell = draggingStartCell; // also moves object
             transform.rotation = draggingStartRotation;
+            desiredRotation = transform.rotation;
             LoadTarget();
         }
         Debug.Log($"Finished dragging {this}, success={result.Success}, reason=\"{result.Reason}\"");
@@ -462,6 +475,27 @@ public class Obstacle : CellBehaviour<CellElement>
 
         desiredOffset = point + DragOffset - transform.position;
         Debug.Log($"Dragging {this} to ray, resulting offset = {desiredOffset}");
+    }
+
+    public void Rotate(int delta)
+    {
+        Vector3 newUp = MathLib.RotateVector2(transform.rotation * Vector2.up, delta * (-90));
+        Quaternion candidateRotation = Quaternion.LookRotation(Vector3.forward, newUp);
+        if (!dragging)
+        {
+            var placementResult = CanBePlaced(Cell, candidateRotation, true);
+            if (!placementResult.Success)
+            {
+                WorldManager.Instance.HandlePlacementError(placementResult, true);
+                // TODO: Consider adding a "wiggle" animation
+                return;
+            }
+        }
+        
+        SaveTarget();
+        desiredRotation = candidateRotation;
+        transform.rotation = desiredRotation;
+        LoadTarget();
     }
 
     public override string ToString()
