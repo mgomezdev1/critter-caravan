@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering.UI;
 
 public class LineEmitter : CellBehaviour<Obstacle>, IMovable
 {
@@ -7,7 +8,9 @@ public class LineEmitter : CellBehaviour<Obstacle>, IMovable
     [SerializeField] Vector2Int startOffset = Vector2Int.zero;
     [Tooltip("The maximum number of cells the emitter line can extend for. Use a negative value to indicate unlimited.")]
     [SerializeField] int maxPropagationDistance = -1;
+    [SerializeField] bool checkAccessToStartCell = true;
     [SerializeField] Surface.Flags skipWallFlags;
+    [SerializeField] EffectorFlags relevantEffectorFlags = EffectorFlags.None;
 
     [SerializeField] bool propagateColor = true;
     [SerializeField] GameObject headPrefab;
@@ -45,9 +48,20 @@ public class LineEmitter : CellBehaviour<Obstacle>, IMovable
     {
         foreach (GameObject go in spawnedObjects)
         {
-            Destroy(go);
+            DestroySpawnedObject(go);
         }
         spawnedObjects.Clear();
+    }
+    public void DestroySpawnedObject(GameObject go)
+    {
+        if (go.TryGetComponent(out Obstacle obstacle))
+        {
+            obstacle.Delete();
+        }
+        else
+        {
+            Destroy(go);
+        }
     }
 
     public void RespawnLineSafe()
@@ -57,9 +71,20 @@ public class LineEmitter : CellBehaviour<Obstacle>, IMovable
         World.RestoreUpdates();
     }
 
-    public void RespawnLine()
+    public void RespawnLine(bool tryReuseObjects = true)
     {
-        DestroySpawnedObjects();
+        if (!tryReuseObjects)
+        {
+            DestroySpawnedObjects();
+        }
+
+        // If we are dragging, consider that no cells are reachable
+        if (CellComponent.IsDragging)
+        {
+            DestroySpawnedObjects();
+            return;
+        }
+
         List<Vector2Int> cells = new();
 
         Vector2 rotatedPropVector = GetRotatedPropagationVector();
@@ -71,14 +96,27 @@ public class LineEmitter : CellBehaviour<Obstacle>, IMovable
 
         for (int i = 0; i < cells.Count; ++i)
         {
-            GameObject prefab = 
+            GameObject target;
+            bool spawned = false;
+            if (i < spawnedObjects.Count)
+            {
+                target = spawnedObjects[i];
+                target.transform.parent = transform;
+            }
+            else
+            {
+                GameObject prefab =
                 i == 0 ? headPrefab :
                 i == cells.Count - 1 ? tailPrefab :
                 bodyPrefab;
 
-            GameObject newSpawnedInstance = Instantiate(prefab, transform);
-            newSpawnedInstance.transform.SetPositionAndRotation(World.GetCellCenter(cells[i]), spawnRotation);
-            if (newSpawnedInstance.TryGetComponent(out CellElement spawnedCellElement))
+                target = Instantiate(prefab, transform);
+                spawnedObjects.Add(target);
+                spawned = true;
+            }
+
+            Vector3 lastPos = target.transform.position;
+            if (target.TryGetComponent(out CellElement spawnedCellElement))
             {
                 spawnedCellElement.Initialize(World);
                 spawnedCellElement.Generated = true;
@@ -86,10 +124,26 @@ public class LineEmitter : CellBehaviour<Obstacle>, IMovable
                 {
                     spawnedCellElement.Color = CellComponent.Color;
                 }
+
+                spawnedCellElement.MoveTo(cells[i], spawnRotation);
             }
-            spawnedObjects.Add(newSpawnedInstance);
+            else
+            {
+                target.transform.SetPositionAndRotation(World.GetCellCenter(cells[i]), spawnRotation);
+            }
+
+            // only animate if we moved the object or created it anew
+            if (spawned || Vector3.Distance(lastPos, target.transform.position) > 0.1f) { 
+                World.AnimateAppearance(target, 0.5f); 
+            }
         }
 
+        while (spawnedObjects.Count > cells.Count)
+        {
+            // remove from the end for efficient O(1) removal rather than O(n), assuming ArrayList
+            DestroySpawnedObject(spawnedObjects[^1]);
+            spawnedObjects.RemoveAt(spawnedObjects.Count - 1);
+        }
     }
     public Vector2 GetRotatedPropagationVector()
     {
@@ -113,6 +167,16 @@ public class LineEmitter : CellBehaviour<Obstacle>, IMovable
         Vector2Int rotatedStartOffset = MathLib.RoundVector(MathLib.RotateVector2(startOffset, transform.rotation, false));
         Vector2Int current = Cell + rotatedStartOffset;
 
+        if (checkAccessToStartCell)
+        {
+            Vector2Int limitedOffset = World.LimitMotion(rotatedStartOffset, Cell, transform.rotation * Vector2.up, out Surface? impactedSurface, skipWallFlags, relevantEffectorFlags);
+            if (limitedOffset != rotatedStartOffset || impactedSurface != null)
+            {
+                Debug.Log($"LineEmitter {gameObject.name} failed to reach startCell {current} from {Cell}. Offset: {limitedOffset}/{rotatedStartOffset}. Surface: {impactedSurface}");
+                yield break;
+            }
+        }
+
         int maxDistance = maxPropagationDistance;
         if (maxDistance < 0) { maxDistance = int.MaxValue; }
 
@@ -121,14 +185,13 @@ public class LineEmitter : CellBehaviour<Obstacle>, IMovable
             if (!World.IsCellValid(current)) { break; }
             yield return current;
             Vector2Int previous = current;
-            current += World.LimitMotion(correctedPropagationVector, current, Vector2.up, out Surface impactedSurface, skipWallFlags);
+            current += World.LimitMotion(correctedPropagationVector, current, Vector2.up, out Surface impactedSurface, skipWallFlags, relevantEffectorFlags);
             if (impactedSurface != null || current == previous) { break; }
         }
     }
 
     private void OnDrawGizmosSelected()
     {
-
         Vector2 correctedForward = GetRotatedPropagationVector();
         Quaternion rotation = GetSpawnRotation(correctedForward);
         Vector3 dirDelta = rotation * Vector3.up;

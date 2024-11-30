@@ -9,6 +9,10 @@
     display: none;
 }
 
+.setup-mode .hide-setup {
+    display: none;
+}
+
 .edit-mode .hide-edit {
     display: none;
 }
@@ -26,17 +30,6 @@
     padding-right: 2px;
     padding-bottom: 2px;
     padding-left: 2px;
-}
-
-.item .display-label {
-    margin-top: 0;
-    margin-right: 0;
-    margin-bottom: 0;
-    margin-left: 0;
-    padding-top: 0;
-    padding-right: 0;
-    padding-bottom: 0;
-    padding-left: 0;
 }
 
 .item .display-image {
@@ -84,4 +77,57 @@
 
 .selected {
     background-image: url("project://database/Assets/TextMesh%20Pro/Examples%20&%20Extras/Textures/Brushed%20Metal%203.jpg?fileID=2800000&guid=f88677df267a41d6be1e7a6133e7d227&type=3#Brushed Metal 3");
+}
+
+.abs-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+}
+
+.field {
+    margin-bottom: 24px;
+}
+
+.mini-label {
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    font-size: 20px;
+}
+
+.hide-unverified {
+    display: none;
+}
+
+.verified .hide-verified {
+    display: none;
+}
+
+.verified .hide-unverified {
+    display: flex;
+}
+
+.panel {
+    padding-top: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    background-color: rgb(135, 135, 135);
+    background-image: url("project://database/Assets/TextMesh%20Pro/Examples%20&%20Extras/Textures/Floor%20Cement.jpg?fileID=2800000&guid=283f897e4925411ebbaa758b4cb13fc2&type=3#Floor Cement");
+}
+
+.item-row {
+    flex-direction: row;
+}
+
+.item-tab {
+    height: auto;
+    max-height: none;
 }

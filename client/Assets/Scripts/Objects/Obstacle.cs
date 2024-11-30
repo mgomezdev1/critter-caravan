@@ -111,18 +111,30 @@ public class Obstacle : CellElement
         None = 0,
         OnSurface = 1
     }
+    public enum MoveType
+    {
+        Fixed = 0,
+        Free = 1,
+        Live = 2
+    }
 
     [SerializeField] List<Vector2Int> occupiedOffsets;
     [SerializeField] List<MeshRenderer> incompatibilityDisplays = new();
-    [SerializeField] bool isFixed = false;
+    [SerializeField] MoveType moveType = MoveType.Fixed;
     [SerializeField] private string obstacleName = "Obstacle";
     [SerializeField] private Requirements requirements = Requirements.None;
     [SerializeField] private Transform moveTarget;
     [SerializeField] private List<Effector> autoAssignSurfaceEffectors;
     public string ObstacleName => obstacleName;
-    public bool IsFixed => isFixed;
+    public bool IsFixed => moveType == MoveType.Fixed;
+    public bool IsFree => moveType == MoveType.Free;
+    public bool IsLive => moveType == MoveType.Live;
+    public MoveType MoveMode => moveType;
     public Requirements Reqs => requirements;
     public Transform MoveTarget => moveTarget;
+
+    private bool isVolatile = false;
+    public bool Volatile => isVolatile;
 
     // EVENTS
     public UnityEvent OnDragStart = new();
@@ -137,7 +149,9 @@ public class Obstacle : CellElement
     protected override void Start()
     {
         base.Start();
-        World.RegisterObstacle(this);
+        desiredRotation = transform.rotation;
+        if (!Volatile)
+            World.RegisterObstacle(this);
     }
 
     protected override void Update()
@@ -320,7 +334,7 @@ public class Obstacle : CellElement
         {
             case GameMode.LevelEdit: return true;
             case GameMode.Setup: return !IsFixed;
-            case GameMode.Play: return false;
+            case GameMode.Play: return IsLive;
             default: return false;
         }
     }
@@ -364,7 +378,7 @@ public class Obstacle : CellElement
                 dragVelocity = dragVelocity.normalized * maxDragSpeed;
             }
             moveTarget.position = initialPosition + dragVelocity * Time.deltaTime;
-        }        
+        }
     }
 
     public void BeginDragging()
@@ -411,6 +425,9 @@ public class Obstacle : CellElement
         result = CanBePlaced(newCell, desiredRotation, draggingStartCell != newCell || draggingStartRotation != transform.rotation);
         if (result.Success)
         {
+            // Unmark volatile if successfully placed
+            isVolatile = false;
+
             // Move to target cell
             SaveTarget();
             Cell = newCell;
@@ -433,12 +450,21 @@ public class Obstacle : CellElement
         }
         else
         {
-            // Move back to the old spot, but keep the target in its current position.
-            SaveTarget();
-            Cell = draggingStartCell; // also moves object
-            transform.rotation = draggingStartRotation;
-            desiredRotation = transform.rotation;
-            LoadTarget();
+            // If a volatile obstacle can't be placed, it is destroyed instead.
+            if (Volatile)
+            {
+                Delete();
+                return false;
+            }
+            else
+            {
+                // Move back to the old spot, but keep the target in its current position.
+                SaveTarget();
+                Cell = draggingStartCell; // also moves object
+                transform.rotation = draggingStartRotation;
+                desiredRotation = transform.rotation;
+                LoadTarget();
+            }
         }
         Debug.Log($"Finished dragging {this}, success={result.Success}, reason=\"{result.Reason}\"");
         OnDragEnd.Invoke(result.Success);
@@ -506,6 +532,18 @@ public class Obstacle : CellElement
         desiredRotation = candidateRotation;
         transform.rotation = desiredRotation;
         LoadTarget();
+    }
+
+    public void Delete()
+    {
+        // detach move target to visually destroy
+        if (World != null && World.gameObject.activeInHierarchy)
+        {
+            moveTarget.parent = null;
+            World.AnimateDisappearance(moveTarget.gameObject, 0.5f, true);
+        }
+        // then destroy this object immediately
+        Destroy(gameObject);
     }
 
     public override string ToString()

@@ -4,13 +4,11 @@
     padding-right: 10px;
     padding-bottom: 10px;
     padding-left: 10px;
+    display: none;
 }
 
 #root {
     font-size: 28px;
-}
-
-.edit-mode .hide-edit {
 }
 
 .row-center {
@@ -39,16 +37,48 @@ Button:active {
     background-image: none;
 }
 
-.disabled {
-    display: none;
-}
-
 .collapsable {
     transition-property: max-height;
     transition-duration: 0.5s;
-    max-height: 300px;
+    max-height: 100%;
 }
 
 .collapsed .collapsable {
     max-height: 0;
+}
+
+.field-label {
+    font-size: 24px;
+    margin-left: 18px;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+}
+
+.field-error {
+    color: rgb(113, 0, 0);
+    font-size: 22px;
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+}
+
+.disabled {
+    display: none;
+}
+
+.hidden {
+    display: none;
+}
+
+.back-button {
+    align-self: flex-start;
+    margin-bottom: 20px;
 }

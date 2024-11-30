@@ -16,6 +16,18 @@ PrefabInstance:
       propertyPath: obstacleName
       value: Virtual Tile
       objectReference: {fileID: 0}
+    - target: {fileID: 2387343352718057658, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2387343352718057658, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2387343352718057658, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
     - target: {fileID: 3148229555891921421, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: surfaceProperties
       value: 2
@@ -31,6 +43,10 @@ PrefabInstance:
     - target: {fileID: 3833101782134411999, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: cell.y
       value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3864260499516867097, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: meshes.Array.size
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4053092323507151552, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: surfaceProperties

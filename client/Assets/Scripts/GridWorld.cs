@@ -621,47 +621,95 @@ public class GridWorld : MonoBehaviour
             entryT *= duration / totalRefTime;
             fadeoutT *= duration / totalRefTime;
         }
-        yield return AnimateHighlightEntry(go, entryT);
+        yield return AnimateAppearance(go, entryT);
         yield return new WaitForSeconds(duration - entryT - fadeoutT);
-        yield return AnimateHighlightFadeout(go, fadeoutT, true);
+        yield return AnimateDisappearance(go, fadeoutT, true);
     }
-    private IEnumerator AnimateHighlightEntry(GameObject highlight, float duration)
+
+    private class AnimationData
+    {
+        public Coroutine Coroutine;
+        public Vector3 InitialScale;
+        public AnimationData(Vector3 initialScale, Coroutine coroutine)
+        {
+            this.Coroutine = coroutine;
+            this.InitialScale = initialScale;
+        }
+    }
+    private readonly Dictionary<GameObject, AnimationData> scaleAnimationMap = new();
+    public Coroutine AnimateAppearance(GameObject target, float duration)
+    {
+        return RegisterAnimation(target, () => StartCoroutine(AnimateAppearanceCoro(target, duration)));
+    }
+    public Coroutine AnimateDisappearance(GameObject target, float duration, bool destroyAtEnd = true)
+    {
+        return RegisterAnimation(target, () => StartCoroutine(AnimateDisappearanceCoro(target, duration, destroyAtEnd)));
+    }
+    private Coroutine RegisterAnimation(GameObject target, Func<Coroutine> nextCoroutineFactory)
+    {
+        if (scaleAnimationMap.TryGetValue(target, out var anim))
+        {
+            StopCoroutine(anim.Coroutine);
+            target.transform.localScale = anim.InitialScale;
+            anim.Coroutine = nextCoroutineFactory();
+            return anim.Coroutine;
+        }
+        else
+        {
+            // note that target.transform.localScale is instantly modified after calling the factory
+            // since these coroutines affect the scale synchronously.
+            // We're relying on LTR evaluation here, otherwise we'd have to store the initial scale before.
+            AnimationData data = new(target.transform.localScale, nextCoroutineFactory());
+            scaleAnimationMap[target] = data;
+            return data.Coroutine;
+        }
+    }
+    private void DeregisterAnimation(GameObject target)
+    {
+        scaleAnimationMap.Remove(target);
+    }
+    private IEnumerator AnimateAppearanceCoro(GameObject target, float duration)
     {
         float timer = 0;
-        Vector3 scale = highlight.transform.localScale;
+        Vector3 scale = target.transform.localScale;
         while (timer < duration)
         {
+            if (target == null) yield break;
             float t = timer / duration;
             float scaleFactor = highlightEntryScaleCurve.Evaluate(t);
-            highlight.transform.localScale = scale * scaleFactor;
+            target.transform.localScale = scale * scaleFactor;
             yield return new WaitForEndOfFrame();
             timer += Time.deltaTime;
         }
+        DeregisterAnimation(target);
     }
-    private IEnumerator AnimateHighlightFadeout(GameObject highlight, float duration, bool destroyAtEnd = true)
+    private IEnumerator AnimateDisappearanceCoro(GameObject target, float duration, bool destroyAtEnd = true)
     {
         float timer = 0;
-        Vector3 scale = highlight.transform.localScale;
+        Vector3 scale = target.transform.localScale;
         while (timer < duration)
         {
             float t = timer / duration;
             float scaleFactor = highlightFadeoutScaleCurve.Evaluate(t);
-            highlight.transform.localScale = scale * scaleFactor;
+            if (target == null) yield break;
+            target.transform.localScale = scale * scaleFactor;
             yield return new WaitForEndOfFrame();
             timer += Time.deltaTime;
         }
-        if (destroyAtEnd) { Destroy(highlight); }
+        DeregisterAnimation(target);
+        if (destroyAtEnd) { Destroy(target); }
     }
+
     public GameObject HighlightTransform(Transform target)
     {
         GameObject highlight = Instantiate(cellHighlightPrefab, target);
         highlight.transform.SetPositionAndRotation(highlight.transform.position, highlight.transform.rotation);
-        StartCoroutine(AnimateHighlightEntry(highlight, highlightEntryTime));
+        AnimateAppearance(highlight, highlightEntryTime);
         return highlight;
     }
     public void EndHighlight(GameObject highlight)
     {
-        StartCoroutine(AnimateHighlightFadeout(highlight, highlightFadeoutTime, true));
+        AnimateDisappearance(highlight, highlightFadeoutTime, true);
     }
 }
 

@@ -27,24 +27,30 @@ public struct ColorScore
     }
 }
 
-public class UIManager : MonoBehaviour
+public class UIManager : BaseUIManager
 {
-    [SerializeField] private UIDocument _document;
-
     VisualElement toolBar;
-    List<Button> speedButtons = new();
+    readonly List<Button> speedButtons = new();
+
+#pragma warning disable CS8618
+    [SerializeField] private ObstacleCompendium compendium;
+#pragma warning restore CS8618
 
     private void Awake()
     {
         _document = GetComponent<UIDocument>();
 
         Button playButton = Q<Button>("PlayButton");
+        Button play2SetupButton = Q<Button>("PlayToSetupButton");
+        Button edit2SetupButton = Q<Button>("EditToSetupButton");
         Button editButton = Q<Button>("EditButton");
-        playButton.clicked += HandlePlay;
-        editButton.clicked += HandleEdit;
+        playButton.clicked += () => HandleMode(GameMode.Play);
+        play2SetupButton.clicked += () => HandleMode(GameMode.Setup);
+        edit2SetupButton.clicked += () => HandleMode(GameMode.Setup);
+        editButton.clicked += () => HandleMode(GameMode.LevelEdit);
 
         toolBar = Q("ToolBar");
-        Button toolMenuToggleButton = Q<Button>("ToolBarShowButton");
+        Button toolMenuToggleButton = toolBar.Q<Button>("ToolBarShowButton");
         toolMenuToggleButton.clicked += ToggleToolMenu;
 
         VisualElement fallthrough = Q(null, "fallthrough");
@@ -57,6 +63,11 @@ public class UIManager : MonoBehaviour
             speedButtons.Add(speedButton);
             speedButton.clicked += () => { HandleSetSpeed(speedButton, setting.speed); };
         }
+
+        ObstacleCompendiumView compendiumView = Q<ObstacleCompendiumView>();
+        compendiumView.OnCategorySelected += HandleCategorySelected;
+        compendiumView.OnObstacleSelected += HandleObstacleSelected;
+
     }
 
     private void Start()
@@ -66,15 +77,15 @@ public class UIManager : MonoBehaviour
 
     public T Q<T>(string name = null, string className = null) where T : VisualElement
     {
-        return _document.rootVisualElement.Q<T>(name, className);
+        return Root.Q<T>(name, className);
     }
     public VisualElement Q(string name = null, string className = null)
     {
-        return _document.rootVisualElement.Q(name, className);
+        return Root.Q(name, className);
     }
     public IEnumerable<T> Query<T>(string name = null, string className = null) where T : VisualElement
     {
-        return _document.rootVisualElement.Query<T>(name, className).ToList();
+        return Root.Query<T>(name, className).ToList();
     }
 
     private VisualElement BuildScoreVisualizer(ColorScore score)
@@ -85,9 +96,17 @@ public class UIManager : MonoBehaviour
         return label;
     }
 
+    public void OpenWindow(string containerId)
+    {
+        foreach (var window in windows)
+        {
+            window.SetVisible(window.containerId == containerId);
+        }
+    }
+
     public void SetScores(IEnumerable<ColorScore> scores)
     {
-        VisualElement holder = _document.rootVisualElement.Q("ScoreHolder");
+        VisualElement holder = Root.Q("ScoreHolder");
         if (holder == null)
         {
             Debug.LogError($"Error while setting scores, no ScoreHolder UI element can be found");
@@ -104,38 +123,39 @@ public class UIManager : MonoBehaviour
     
     public void HandleMode(GameMode gameMode)
     {
-        switch (gameMode)
+        if (!WorldManager.Instance.SetGameMode(gameMode)) return;
+
+        if (gameMode == GameMode.Play)
         {
-            case GameMode.Play: 
-                HandlePlay(); 
-                return;
-            case GameMode.Setup:
-            case GameMode.LevelEdit:
-                HandleEdit(); 
-                return;
+            EnsureSpeedSelected(WorldManager.Instance.World.TimeSpeed);
         }
-    }
-    public void HandlePlay()
-    {
-        if (!WorldManager.Instance.SetGameMode(GameMode.Play)) return;
-        EnsureSpeedSelected(WorldManager.Instance.World.TimeSpeed);
 
-        _document.rootVisualElement.EnableInClassList("play-mode", true);
-        _document.rootVisualElement.EnableInClassList("edit-mode", false);
+        Root.EnableInClassList("play-mode", gameMode == GameMode.Play);
+        Root.EnableInClassList("setup-mode", gameMode == GameMode.Setup);
+        Root.EnableInClassList("edit-mode", gameMode == GameMode.LevelEdit);
     }
-    public void HandleEdit()
-    {
-        if (!WorldManager.Instance.SetGameMode(GameMode.Setup)) return;
 
-        _document.rootVisualElement.EnableInClassList("edit-mode", true);
-        _document.rootVisualElement.EnableInClassList("play-mode", false);
+    private void HandleObstacleSelected(ObstacleData data)
+    {
+        Obstacle newObstacle = WorldManager.Instance.SpawnObstacle(data);
+        WorldManager.Instance.World.Raycast(WorldManager.Instance.GetCameraRay(), out Vector3 newPosition);
+        newObstacle.transform.position = newPosition;
+        WorldManager.Instance.AttachObstacleToCursor(newObstacle);
     }
-    bool toolMenuDisplayed = false;
+
+    private void HandleCategorySelected(ObstacleCategory category)
+    {
+        // do nothing, as of now
+    }
+
     public void ToggleToolMenu()
     {
-        toolMenuDisplayed = !toolMenuDisplayed;
-        Debug.Log($"Toggling tool menu displayed to {toolMenuDisplayed}");
-        toolBar.EnableInClassList("collapsed", !toolMenuDisplayed);
+        toolBar.ToggleInClassList("collapsed");
+    }
+
+    public void SetVerifiedStatus(bool verified)
+    {
+        Root.EnableInClassList("verified", verified);
     }
 
     public void HandleWorldMouseDown(MouseDownEvent evt)

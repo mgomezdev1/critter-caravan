@@ -4,7 +4,7 @@ using UnityEngine;
 
 #nullable enable
 #pragma warning disable CS8618
-public class SingleSurface : CellBehaviour<CellElement>, IMovable
+public class SingleSurface : CellBehaviour<Obstacle>, IMovable
 {
     [SerializeField] [Range(0, 360)] private float wallAngle;
     [SerializeField] private Vector2 wallOffset = Vector2.zero;
@@ -22,6 +22,7 @@ public class SingleSurface : CellBehaviour<CellElement>, IMovable
     void Start()
     {
         World.RegisterSurface(GetSurface());
+        CellComponent.OnDragStart.AddListener(DisableSurface);
     }
 
     public Surface GetSurface(bool useCache = true)
@@ -92,5 +93,14 @@ public class SingleSurface : CellBehaviour<CellElement>, IMovable
         }
         surface.normal = targetRotation * MathLib.Vector2FromAngle(wallAngle);
         surface.offset = ProcessOffset(newCell, targetRotation * wallOffset);
+    }
+
+    public void DisableSurface()
+    {
+        if (surface != null)
+        {
+            World.DeregisterSurface(surface);
+            surface = null;
+        }
     }
 }

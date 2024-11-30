@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -45,9 +46,19 @@ public class WorldManager : MonoBehaviour
     }
 
     // Update is called once per frame
+    bool dragObstacleWithoutInput = false;
+    bool dragInputPressed = false;
     void Update()
     {
-        if (gameMode == GameMode.Setup || gameMode == GameMode.LevelEdit) SimulateMouseEvents();
+        SimulateMouseEvents();
+
+        if (heldObstacle != null && (dragInputPressed || dragObstacleWithoutInput))
+        {
+            heldObstacle.DragToRay(GetCameraRay());
+        }
+
+        // reset button press input variables
+        dragInputPressed = false;
     }
 
     public void HandleRotateCW(CallbackContext ctx)
@@ -95,19 +106,14 @@ public class WorldManager : MonoBehaviour
         if (heldObstacle == null)
         {
             Obstacle? candidate = GetObstacleAtRay(cameraRay);
-            //Debug.Log($"Attempting to start drag of obstacle {candidate}");
-            if (candidate != null && candidate.CanBeMoved())
-            {
-                //Debug.Log($"Candidate can be dragged!");
-                heldObstacle = candidate;
-                heldObstacle.BeginDragging();
-            }
-            else
-            {
-                heldObstacle = null;
-            }
-
+            TryGrabOstacle(candidate);
             ChangeSelection(candidate);
+        }
+        else if (dragObstacleWithoutInput)
+        {
+            // it is also possible we grabbed an obstacle and enabled the drag without input,
+            // in which case we now move into the usual strategy by disabling that flag
+            dragObstacleWithoutInput = false;
         }
     }
     public void HandleWorldMouseHeld()
@@ -116,11 +122,7 @@ public class WorldManager : MonoBehaviour
     }
     public void HandleWorldMouseHeld(Ray cameraRay)
     {
-        if (heldObstacle != null)
-        {
-            //Debug.Log($"Processing drag of obstacle {heldObstacle}");
-            heldObstacle.DragToRay(cameraRay);
-        }
+        dragInputPressed = true;
     }
     public void HandleWorldMouseUp()
     {
@@ -138,6 +140,22 @@ public class WorldManager : MonoBehaviour
         }
     }
 
+    public bool TryGrabOstacle(Obstacle? newDragTarget)
+    {
+        //Debug.Log($"Attempting to start drag of obstacle {candidate}");
+        if (newDragTarget != null && newDragTarget.CanBeMoved())
+        {
+            //Debug.Log($"Candidate can be dragged!");
+            heldObstacle = newDragTarget;
+            heldObstacle.BeginDragging();
+            return true;
+        }
+        else
+        {
+            heldObstacle = null;
+            return newDragTarget == null;
+        }
+    }
     private Obstacle? selectedObstacle;
     private GameObject? activeSelectHighlight;
     public void ChangeSelection(Obstacle? newSelectTarget)
@@ -215,7 +233,15 @@ public class WorldManager : MonoBehaviour
             {
                 activeWorld.HighlightCell(obstacle.Cell, 1);
             }
+        } 
+        else if (gameMode == GameMode.Play) 
+        {
+            foreach (var obstacle in activeWorld.GetDynamicObstacles().Where(o => o.IsLive))
+            {
+                activeWorld.HighlightCell(obstacle.Cell, 1);
+            }
         }
+
         return true;
     }
 
@@ -242,6 +268,21 @@ public class WorldManager : MonoBehaviour
     {
         ResetScores();
         activeWorld.HandleReset();
+    }
+
+    public Obstacle SpawnObstacle(ObstacleData template)
+    {
+        GameObject spawned = Instantiate(template.obstaclePrefab, activeWorld.transform);
+        Obstacle result = spawned.GetComponent<Obstacle>();
+        result.Initialize(activeWorld);
+
+        return result;
+    }
+    public void AttachObstacleToCursor(Obstacle target)
+    {
+        dragObstacleWithoutInput = true;
+        TryGrabOstacle(target);
+        ChangeSelection(target);
     }
 
     /* ********************** *

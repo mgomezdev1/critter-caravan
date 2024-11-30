@@ -2649,6 +2649,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _document: {fileID: 1989235491}
+  compendium: {fileID: 0}
 --- !u!1001 &2014970898
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2668,6 +2669,10 @@ PrefabInstance:
     - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: isFixed
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 997986953621449302, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
+      propertyPath: moveType
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3833101782134411999, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
       propertyPath: world
@@ -2932,6 +2937,10 @@ PrefabInstance:
       value: Campsite
       objectReference: {fileID: 0}
     - target: {fileID: 5197759885480280529, guid: 106e483804781614eaca91a97d125c54, type: 3}
+      propertyPath: color
+      value: 
+      objectReference: {fileID: 11400000, guid: 507949b79e7160148be7c67d9f4bd453, type: 2}
+    - target: {fileID: 5197759885480280529, guid: 106e483804781614eaca91a97d125c54, type: 3}
       propertyPath: world
       value: 
       objectReference: {fileID: 391580079}
@@ -3111,6 +3120,10 @@ PrefabInstance:
     - target: {fileID: 1713405006553826134, guid: 753540ce5a4990a499609825e2d8f5eb, type: 3}
       propertyPath: isFixed
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1713405006553826134, guid: 753540ce5a4990a499609825e2d8f5eb, type: 3}
+      propertyPath: moveType
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2170380489152428110, guid: 753540ce5a4990a499609825e2d8f5eb, type: 3}
       propertyPath: m_Name
@@ -3302,6 +3315,10 @@ PrefabInstance:
       propertyPath: isFixed
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8500731662016917601, guid: d18cd2302c4605e48a9f07f445ad130e, type: 3}
+      propertyPath: moveType
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 8944477754094848889, guid: d18cd2302c4605e48a9f07f445ad130e, type: 3}
       propertyPath: m_Name
       value: VirtualTile
@@ -3428,6 +3445,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Spawner
       objectReference: {fileID: 0}
+    - target: {fileID: 5519156395400112468, guid: e8aa1cad8cb761142ba9a7fd4a82a111, type: 3}
+      propertyPath: color
+      value: 
+      objectReference: {fileID: 11400000, guid: 507949b79e7160148be7c67d9f4bd453, type: 2}
     - target: {fileID: 5519156395400112468, guid: e8aa1cad8cb761142ba9a7fd4a82a111, type: 3}
       propertyPath: world
       value: 

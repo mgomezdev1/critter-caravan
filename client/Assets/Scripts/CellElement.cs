@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
@@ -101,12 +102,34 @@ public class CellElement : MonoBehaviour
         cellValueDirty = true;
     }
 
+    public void MoveTo(Vector2Int newCell, Quaternion newRotation)
+    {
+        Vector3 newPosition = World.GetCellCenter(newCell);
+        MoveTo(newCell, newPosition, newRotation);
+    }
+    public void MoveTo(Vector3 newPosition, Quaternion newRotation)
+    {
+        Vector2Int newCell = World.GetCell(newPosition);
+        MoveTo(newCell, newPosition, newRotation);
+    }
+    public void MoveTo(Vector2Int newCell, Vector3 newPosition, Quaternion newRotation)
+    {
+        Vector2Int oldCell = Cell;
+        Quaternion oldRotation = transform.rotation;
+        cell = newCell;
+        transform.SetPositionAndRotation(newPosition, newRotation);
+        InvokeMoved(oldCell, oldRotation, newCell, newRotation);
+    }
+
     public void InvokeMoved(Vector2Int originCell, Quaternion originRotation, Vector2Int targetCell, Quaternion targetRotation)
     {
         MarkPositionDirty();
-        foreach (IMovable movable in GetComponents<IMovable>())
+        if (didStart)
         {
-            movable.AfterMove(originCell, originRotation, targetCell, targetRotation);
+            foreach (IMovable movable in GetComponents<IMovable>())
+            {
+                movable.AfterMove(originCell, originRotation, targetCell, targetRotation);
+            }
         }
     }
 }

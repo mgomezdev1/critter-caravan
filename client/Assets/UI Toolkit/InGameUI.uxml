@@ -2,14 +2,21 @@
     <Style src="project://database/Assets/UI%20Toolkit/global.uss?fileID=7433441132597879392&amp;guid=7ba1cb99606c0df4f8a29b3c4d954bad&amp;type=3#global" />
     <Style src="project://database/Assets/UI%20Toolkit/gameUI.uss?fileID=7433441132597879392&amp;guid=68e4d41cb0d4845449153c03fbaba48e&amp;type=3#gameUI" />
     <engine:VisualElement name="root" class="root" style="flex-grow: 1;">
-        <engine:VisualElement name="VisualElement" class="fallthrough" style="flex-grow: 1;" />
+        <engine:VisualElement name="Fallthrough" class="fallthrough" style="flex-grow: 1;">
+            <engine:VisualElement style="flex-grow: 1;" />
+        </engine:VisualElement>
         <engine:VisualElement name="container" picking-mode="Ignore" style="flex-grow: 1; justify-content: space-between; flex-direction: column; align-items: stretch;">
             <engine:VisualElement name="TopBar" picking-mode="Ignore" style="flex-grow: 0; align-self: stretch; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; flex-direction: column;">
-                <engine:VisualElement name="EditMenu" picking-mode="Ignore" class="hide-play" style="flex-grow: 1; align-items: center; flex-direction: row; justify-content: center;">
+                <engine:VisualElement name="EditMenu" class="hide-play hide-setup" style="flex-grow: 1; flex-direction: row; align-items: center; justify-content: center;">
+                    <engine:Button text="Test Level" name="EditToSetupButton" />
+                    <engine:Button text="Level Options" name="LevelOptionsButton" />
+                </engine:VisualElement>
+                <engine:VisualElement name="SetupMenu" picking-mode="Ignore" class="hide-play hide-edit" style="flex-grow: 1; align-items: center; flex-direction: row; justify-content: center;">
+                    <engine:Button text="Edit Level" name="EditButton" class="button" />
                     <engine:Button text="Play" name="PlayButton" class="button" />
                 </engine:VisualElement>
-                <engine:VisualElement name="PlayMenu" picking-mode="Ignore" class="hide-edit" style="flex-grow: 1; align-items: center; flex-direction: row; justify-content: center;">
-                    <engine:Button text="Edit" name="EditButton" class="button" />
+                <engine:VisualElement name="PlayMenu" picking-mode="Ignore" class="hide-edit hide-setup" style="flex-grow: 1; align-items: center; flex-direction: column; justify-content: center;">
+                    <engine:Button text="Back to Setup" name="PlayToSetupButton" class="button" />
                     <engine:VisualElement name="SpeedSettings" style="flex-grow: 0; margin-right: 45px; margin-left: 45px; height: 50px; flex-direction: row;">
                         <engine:Button data-source="project://database/Assets/UI%20Toolkit/Data/Speed0Pause.asset?fileID=11400000&amp;guid=bda49c98ac010384d9fdeb13c180ebdf&amp;type=2#Speed0Pause" icon-image="project://database/Assets/UI%20Toolkit/Images/Speed/Pause.png?fileID=21300000&amp;guid=a9687fe1102ef9840917454a26710349&amp;type=3#Pause" name="Pause" class="speed-button">
                             <Bindings>
@@ -39,70 +46,52 @@
                     </engine:VisualElement>
                 </engine:VisualElement>
             </engine:VisualElement>
-            <engine:VisualElement name="ToolBar" class="collapsable collapsed hide-play" style="flex-grow: 0;">
+            <engine:VisualElement name="ToolBar" class="collapsable hide-play hide-setup collapsed" style="flex-grow: 0;">
                 <engine:VisualElement name="ShowBar" style="flex-grow: 1;">
                     <engine:Button name="ToolBarShowButton" icon-image="project://database/Assets/UI%20Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss?fileID=-4528830608231651361&amp;guid=28ee427162c361e4c9de3a29022416fa&amp;type=3#arrow-up@2x" class="minibutton" style="margin-right: 0; margin-top: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; border-left-width: 0; border-top-left-radius: 0; border-top-width: 1px; border-bottom-width: 0; border-right-width: 0; border-left-color: rgb(24, 24, 24); border-right-color: rgb(24, 24, 24); border-top-color: rgb(24, 24, 24); border-bottom-color: rgb(24, 24, 24);" />
                 </engine:VisualElement>
                 <engine:VisualElement name="ToolBarMenu" class="collapsable" style="flex-grow: 1; overflow: hidden;">
-                    <engine:TabView>
-                        <engine:Tab label="Sample Category" name="SampleCategory" icon-image="project://database/Assets/UI%20Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss?fileID=4584671053970592468&amp;guid=28ee427162c361e4c9de3a29022416fa&amp;type=3#console.warnicon" class="category">
-                            <engine:VisualElement name="SampleRow" style="flex-grow: 1; flex-direction: row;" />
-                            <engine:ScrollView>
-                                <engine:VisualElement name="SampleRow" style="flex-grow: 1; flex-direction: row;">
-                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
-                                        <engine:VisualElement name="VisualElement" class="display-image" />
-                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
-                                    </engine:Button>
-                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
-                                        <engine:VisualElement name="VisualElement" class="display-image" />
-                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
-                                    </engine:Button>
-                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
-                                        <engine:VisualElement name="VisualElement" class="display-image" />
-                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
-                                    </engine:Button>
-                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
-                                        <engine:VisualElement name="VisualElement" class="display-image" />
-                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
-                                    </engine:Button>
-                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
-                                        <engine:VisualElement name="VisualElement" class="display-image" />
-                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
-                                    </engine:Button>
-                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
-                                        <engine:VisualElement name="VisualElement" class="display-image" />
-                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
-                                    </engine:Button>
-                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
-                                        <engine:VisualElement name="VisualElement" class="display-image" />
-                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
-                                    </engine:Button>
-                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
-                                        <engine:VisualElement name="VisualElement" class="display-image" />
-                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
-                                    </engine:Button>
-                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
-                                        <engine:VisualElement name="VisualElement" class="display-image" />
-                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
-                                    </engine:Button>
-                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
-                                        <engine:VisualElement name="VisualElement" class="display-image" />
-                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
-                                    </engine:Button>
-                                    <engine:Button name="SampleItem" class="item" style="-unity-text-align: middle-center;">
-                                        <engine:VisualElement name="VisualElement" class="display-image" />
-                                        <engine:Label text="Label" class="display-label" style="white-space: normal;" />
-                                    </engine:Button>
-                                </engine:VisualElement>
-                            </engine:ScrollView>
-                        </engine:Tab>
-                    </engine:TabView>
+                    <ObstacleCompendiumView name="ObstacleCompendiumView" compendium="project://database/Assets/Scripts/Data/Obstacles/ObstacleCompendium.asset?fileID=11400000&amp;guid=6504f452816d7494f8a9215e109f2d97&amp;type=2#ObstacleCompendium" num-rows="2" />
                 </engine:VisualElement>
             </engine:VisualElement>
-            <engine:VisualElement name="ScoreHolder" picking-mode="Ignore" style="flex-grow: 1; position: absolute; top: 25px; right: 25px; flex-direction: row-reverse; align-items: center; -unity-text-outline-width: 0; -unity-text-outline-color: rgb(0, 0, 0); text-shadow: 1.8px 1.6px 1.5px rgb(67, 67, 67);">
+            <engine:VisualElement name="ScoreHolder" picking-mode="Ignore" class="hide-edit" style="flex-grow: 1; position: absolute; top: 25px; right: 25px; flex-direction: column; align-items: center; -unity-text-outline-width: 0; -unity-text-outline-color: rgb(0, 0, 0); text-shadow: 1.8px 1.6px 1.5px rgb(67, 67, 67);">
                 <engine:Label text="0/3&#10;" />
                 <engine:Label text="0/3&#10;" />
                 <engine:Label text="0/3&#10;" />
+            </engine:VisualElement>
+            <engine:VisualElement name="NavHolder" style="flex-grow: 1; top: 0; left: 0; position: absolute;">
+                <engine:Button text="Back" name="BackButton" />
+                <engine:Button text="Settings" name="SettingsButton" />
+            </engine:VisualElement>
+            <engine:VisualElement name="LevelOptions" class="abs-center panel hidden">
+                <engine:Button text="Back" name="BackButton" class="back-button" />
+                <engine:VisualElement name="NameField" class="field" style="flex-grow: 1;">
+                    <engine:Label text="Level Name" name="LevelNameLabel" class="field-label" style="-unity-text-align: upper-left;" />
+                    <engine:VisualElement name="LevelNameFieldRow" style="flex-grow: 1; min-width: 500px; flex-direction: row;">
+                        <engine:TextField placeholder-text="your level name" name="LevelName" style="flex-grow: 1;" />
+                        <engine:VisualElement name="LevelNameStatus" style="flex-grow: 0; flex-direction: row;">
+                            <engine:VisualElement name="LevelNameStatusGood" style="flex-grow: 1; height: 100%; -unity-background-scale-mode: scale-to-fit; background-image: url(&quot;project://database/Assets/UI%20Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss?fileID=7433338533053954386&amp;guid=28ee427162c361e4c9de3a29022416fa&amp;type=3#check@2x&quot;); width: 60px; -unity-background-image-tint-color: rgb(10, 255, 0);" />
+                            <engine:VisualElement name="LevelNameStatusBad" style="flex-grow: 1; height: 100%; width: 60px; background-image: url(&quot;project://database/Assets/UI%20Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss?fileID=8228938214290033325&amp;guid=28ee427162c361e4c9de3a29022416fa&amp;type=3#console.erroricon&quot;);" />
+                        </engine:VisualElement>
+                    </engine:VisualElement>
+                    <engine:Label text="Your name sucks, change it" name="LevelNameError" class="field-error" style="-unity-text-align: upper-left; padding-left: 0; margin-left: 8px; margin-top: -2px;" />
+                </engine:VisualElement>
+                <engine:VisualElement name="DataField" class="field" style="flex-grow: 1;">
+                    <engine:Label text="Level Data" name="LevelNameLabel" class="field-label" style="-unity-text-align: upper-left;" />
+                    <engine:VisualElement name="LevelNameFieldRow" style="flex-grow: 1; min-width: 500px; flex-direction: row;">
+                        <engine:TextField placeholder-text="your level name" name="LevelName" style="flex-grow: 1;" />
+                        <engine:VisualElement name="SaveLoad" style="flex-grow: 0; flex-direction: row; justify-content: center;">
+                            <engine:Button text="Load" name="LoadDataButton" />
+                        </engine:VisualElement>
+                    </engine:VisualElement>
+                    <engine:Label text="Unable to parse data" name="LevelNameError" class="field-error" style="-unity-text-align: upper-left; padding-left: 0; margin-left: 8px; margin-top: -2px;" />
+                </engine:VisualElement>
+                <engine:Button text="Save" name="SaveButton" class="field" />
+                <engine:VisualElement name="PublishMenu" style="flex-grow: 1;">
+                    <engine:Label text="The level is verified" name="LevelVerifiedLabel" class="mini-label hide-unverified" style="-unity-text-align: upper-center; height: 26px;" />
+                    <engine:Label text="You need to verify the level before you can publish" name="LevelNotVerifiedLabel" class="mini-label hide-verified" style="-unity-text-align: upper-center;" />
+                    <engine:Button text="Publish Level" name="PublishButton" enabled="false" />
+                </engine:VisualElement>
             </engine:VisualElement>
         </engine:VisualElement>
         <engine:VisualElement name="debug" class="debug" style="flex-grow: 1; position: absolute; top: 0; left: 0; right: auto; bottom: auto;">
