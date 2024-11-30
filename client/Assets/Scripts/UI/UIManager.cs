@@ -138,6 +138,7 @@ public class UIManager : BaseUIManager
     private void HandleObstacleSelected(ObstacleData data)
     {
         Obstacle newObstacle = WorldManager.Instance.SpawnObstacle(data);
+        newObstacle.MarkVolatile();
         WorldManager.Instance.World.Raycast(WorldManager.Instance.GetCameraRay(), out Vector3 newPosition);
         newObstacle.transform.position = newPosition;
         WorldManager.Instance.AttachObstacleToCursor(newObstacle);

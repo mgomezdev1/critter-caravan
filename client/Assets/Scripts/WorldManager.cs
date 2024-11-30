@@ -69,6 +69,19 @@ public class WorldManager : MonoBehaviour
     {
         if (ctx.performed) { RotateSelection(-1); }
     }
+    public void HandleDelete(CallbackContext ctx)
+    {
+        if (ctx.performed && gameMode == GameMode.LevelEdit && selectedObstacle != null)
+        {
+            Obstacle prevSelected = selectedObstacle;
+            if (heldObstacle == selectedObstacle)
+            {
+                heldObstacle = null;
+            }
+            ChangeSelection(null);
+            prevSelected.Delete();
+        }
+    }
 
     private Obstacle? heldObstacle = null;
     private bool clickedLast = false;
@@ -280,7 +293,10 @@ public class WorldManager : MonoBehaviour
     }
     public void AttachObstacleToCursor(Obstacle target)
     {
-        dragObstacleWithoutInput = true;
+        if (!dragInputPressed)
+        {
+            dragObstacleWithoutInput = true;
+        }
         TryGrabOstacle(target);
         ChangeSelection(target);
     }

@@ -63,6 +63,10 @@ public class CellElement : MonoBehaviour
         world.OnTimeStep.AddListener(HandleTimeStep);
     }
 
+    protected virtual void OnDestroy()
+    {
+    }
+
     public void Initialize(GridWorld world)
     {
         if (didStart)

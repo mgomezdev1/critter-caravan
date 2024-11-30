@@ -160,6 +160,16 @@ public class Obstacle : CellElement
         MoveToOffset();
     }
 
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+        var world = World;
+        if (world != null)
+        {
+            world.DeregisterObstacle(this);
+        }
+    }
+
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = UnityEngine.Color.yellow;
@@ -544,6 +554,11 @@ public class Obstacle : CellElement
         }
         // then destroy this object immediately
         Destroy(gameObject);
+    }
+
+    public void MarkVolatile()
+    {
+        isVolatile = true;
     }
 
     public override string ToString()
