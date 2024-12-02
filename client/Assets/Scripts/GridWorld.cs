@@ -80,6 +80,19 @@ public class GridWorld : MonoBehaviour
             }
             CheckEntityCollisions();
         }
+        else //edit or setup mode
+        {
+            if (uncheckedObstacles.Count > 0)
+            {
+                var sideEffectResults = CheckValidObstacles(uncheckedObstacles[^1]);
+                if (!sideEffectResults.Success)
+                {
+                    WorldManager.Instance.HandlePlacementError(sideEffectResults);
+                    foreach (var obstacle in uncheckedObstacles) { obstacle.Delete(); }
+                }
+                uncheckedObstacles.Clear();
+            }
+        }
     }
 
     public Vector2Int GetCell(Vector3 position)
@@ -710,6 +723,12 @@ public class GridWorld : MonoBehaviour
     public void EndHighlight(GameObject highlight)
     {
         AnimateDisappearance(highlight, highlightFadeoutTime, true);
+    }
+
+    private List<Obstacle> uncheckedObstacles = new();
+    public void ScheduleSideEffectCheck(Obstacle newObstacle)
+    {
+        uncheckedObstacles.Add(newObstacle);
     }
 }
 

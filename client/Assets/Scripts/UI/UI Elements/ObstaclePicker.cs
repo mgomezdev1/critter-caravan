@@ -19,6 +19,14 @@ public partial class ObstaclePicker : Button
     }
     private ObstacleData data;
 
+    [UxmlAttribute]
+    public float Rotation
+    {
+        get { return rotation; }
+        set { rotation = value; UpdateRotation(); }
+    }
+    private float rotation = 0;
+
     public ObstaclePicker()
     {
         // build UI
@@ -29,6 +37,7 @@ public partial class ObstaclePicker : Button
         label = new Label();
         label.AddToClassList("display-label");
         Add(label);
+        UpdateRotation();
 
         this.RegisterCallback<PointerDownEvent>(HandlePointerDown, TrickleDown.TrickleDown);
     }
@@ -43,5 +52,10 @@ public partial class ObstaclePicker : Button
     {
         spriteHolder.style.backgroundImage = new StyleBackground(data != null ? data.obstacleSprite : null);
         label.text = data != null ? data.obstacleName : string.Empty;
+    }
+
+    private void UpdateRotation()
+    {
+        spriteHolder.style.rotate = new StyleRotate(new Rotate(rotation));
     }
 }

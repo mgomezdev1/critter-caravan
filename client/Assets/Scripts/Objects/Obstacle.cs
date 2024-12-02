@@ -11,38 +11,52 @@ using UnityEngine.LightTransport;
 #nullable enable
 public interface IObstaclePlacementResult
 {
-    public Obstacle Obstacle { get; }
+    public Obstacle? Obstacle { get; }
     public bool Success { get; }
     public string Reason { get; }
 
     public IEnumerable<Obstacle> GetProblemObstacles();
+    public IObstaclePlacementResult Blame(Obstacle? otherObstacle);
 }
 public class ObstaclePlacementSuccess : IObstaclePlacementResult
 {
-    private readonly Obstacle _obstacle;
-    public Obstacle Obstacle => _obstacle;
+    private readonly Obstacle? _obstacle;
+    public Obstacle? Obstacle => _obstacle;
     public bool Success => true;
     public string Reason => string.Empty;
 
-    public ObstaclePlacementSuccess(Obstacle obstacle)
+    public ObstaclePlacementSuccess(Obstacle? obstacle)
     {
         _obstacle = obstacle;
     }
     public IEnumerable<Obstacle> GetProblemObstacles() { yield break; }
+
+    public IObstaclePlacementResult Blame(Obstacle? otherObstacle)
+    {
+        return new ObstaclePlacementSuccess(otherObstacle);
+    }
 }
 public class ObstaclePlacementFailure : IObstaclePlacementResult 
 {
-    public readonly Obstacle obstacle;
-    public Obstacle Obstacle => obstacle;
+    public readonly Obstacle? obstacle;
+    public Obstacle? Obstacle => obstacle;
     public bool Success => false;
     public string Reason { get; protected set; }
 
-    public ObstaclePlacementFailure(Obstacle obstacle, string reason)
+    public ObstaclePlacementFailure(Obstacle? obstacle, string reason)
     {
         this.obstacle = obstacle;
         Reason = reason;
     }
-    public virtual IEnumerable<Obstacle> GetProblemObstacles() { yield return obstacle; }
+    public virtual IEnumerable<Obstacle> GetProblemObstacles() {
+        if (obstacle == null) yield break;
+        yield return obstacle; 
+    }
+
+    public virtual IObstaclePlacementResult Blame(Obstacle? otherObstacle)
+    {
+        return new ObstaclePlacementFailure(otherObstacle, Reason);
+    }
 
     public override string ToString()
     {
@@ -54,18 +68,23 @@ public class ObstacleConflict : ObstaclePlacementFailure
     public readonly Obstacle conflictObstacle;
     public readonly Vector2Int conflictCell;
 
-    public ObstacleConflict(Obstacle obstacle, Obstacle conflictObstacle, Vector2Int conflictCell)
+    public ObstacleConflict(Obstacle? obstacle, Obstacle conflictObstacle, Vector2Int conflictCell)
         : base(obstacle, string.Empty)
     {
         this.conflictObstacle = conflictObstacle;
         this.conflictCell = conflictCell;
-        Reason = $"{obstacle.ObstacleName} infringes on the area of {conflictObstacle.ObstacleName} on cell {conflictCell}";
+        Reason = $"{obstacle?.ObstacleName ?? "obstacle"} infringes on the area of {conflictObstacle.ObstacleName} on cell {conflictCell}";
     }
 
     public override IEnumerable<Obstacle> GetProblemObstacles()
     {
-        yield return obstacle;
+        if (obstacle != null) yield return obstacle;
         yield return conflictObstacle;
+    }
+
+    public override IObstaclePlacementResult Blame(Obstacle? otherObstacle)
+    {
+        return new ObstacleConflict(otherObstacle, conflictObstacle, conflictCell);
     }
 }
 public class ObstacleMissingSurface : ObstaclePlacementFailure
@@ -73,18 +92,23 @@ public class ObstacleMissingSurface : ObstaclePlacementFailure
     public readonly Vector2Int cell;
     public readonly Vector2 normal;
 
-    public ObstacleMissingSurface(Obstacle obstacle, Vector2Int cell, Vector2 normal)
+    public ObstacleMissingSurface(Obstacle? obstacle, Vector2Int cell, Vector2 normal)
         : base(obstacle, string.Empty)
     {
         this.cell = cell;
         this.normal = normal;
-        Reason = $"{obstacle.ObstacleName} requires a surface below cell {cell} to stand on.";
+        Reason = $"{obstacle?.ObstacleName ?? "obstacle"} requires a surface below cell {cell} to stand on.";
+    }
+
+    public override IObstaclePlacementResult Blame(Obstacle? otherObstacle)
+    {
+        return new ObstacleMissingSurface(otherObstacle, cell, normal);
     }
 }
 public class ObstacleSideEffectFailure : ObstaclePlacementFailure
 {
     public readonly ObstaclePlacementFailure baseFailure;
-    public ObstacleSideEffectFailure(Obstacle movedObstacle, ObstaclePlacementFailure baseFailure) :
+    public ObstacleSideEffectFailure(Obstacle? movedObstacle, ObstaclePlacementFailure baseFailure) :
         base(movedObstacle, string.Empty)
     {
         this.baseFailure = baseFailure;
@@ -93,12 +117,17 @@ public class ObstacleSideEffectFailure : ObstaclePlacementFailure
 
     public override IEnumerable<Obstacle> GetProblemObstacles()
     {
-        yield return obstacle;
+        if (obstacle != null) yield return obstacle;
         foreach (var otherObstacle in baseFailure.GetProblemObstacles())
         {
             if (obstacle == otherObstacle) continue;
             yield return otherObstacle;
         }
+    }
+
+    public override IObstaclePlacementResult Blame(Obstacle? otherObstacle)
+    {
+        return new ObstacleSideEffectFailure(otherObstacle, baseFailure);
     }
 }
 
@@ -205,19 +234,11 @@ public class Obstacle : CellElement
     public IObstaclePlacementResult CanBePlaced(Vector2Int newOrigin, Quaternion newRotation, bool checkSideEffects = true)
     {
         GridWorld world = World;
-        foreach (var occupiedCell in GetOccupiedCells(newOrigin, newRotation))
+        var preliminaryResult = this.CanBePlacedNoInit(world, newOrigin, newRotation);
+        if (!preliminaryResult.Success)
         {
-            Obstacle? conflict = world.GetObstacle(occupiedCell);
-            if (conflict != null && conflict != this)
-            {
-                // Might want to introduce localization for this
-                return new ObstacleConflict(this, conflict, occupiedCell);
-            }
+            return preliminaryResult;
         }
-
-        // Flag-based requirement testing
-        IObstaclePlacementResult extraReqTestResult = CheckValidity(newOrigin, newRotation);
-        if (!extraReqTestResult.Success) return extraReqTestResult;
 
         // Side effect check
         Vector2Int currentCell = Cell;
@@ -240,6 +261,25 @@ public class Obstacle : CellElement
                 throw new Exception($"Class inheritance error: {result}.Success = false but it doesn't inherit from ObstaclePlacementFailure.");
             }
         }
+
+        return new ObstaclePlacementSuccess(this);
+    }
+
+    public IObstaclePlacementResult CanBePlacedNoInit(GridWorld world, Vector2Int origin, Quaternion rotation)
+    {
+        foreach (var occupiedCell in GetOccupiedCells(origin, rotation))
+        {
+            Obstacle? conflict = world.GetObstacle(occupiedCell);
+            if (conflict != null && conflict != this)
+            {
+                // Might want to introduce localization for this
+                return new ObstacleConflict(this, conflict, occupiedCell);
+            }
+        }
+
+        // Flag-based requirement testing
+        IObstaclePlacementResult extraReqTestResult = CheckValidity(origin, rotation);
+        if (!extraReqTestResult.Success) return extraReqTestResult;
 
         return new ObstaclePlacementSuccess(this);
     }

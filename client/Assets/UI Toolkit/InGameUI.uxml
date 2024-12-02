@@ -46,18 +46,29 @@
                     </engine:VisualElement>
                 </engine:VisualElement>
             </engine:VisualElement>
-            <engine:VisualElement name="ToolBar" class="collapsable hide-play hide-setup collapsed" style="flex-grow: 0;">
+            <engine:VisualElement name="TilePicker" class="collapsable hide-play hide-setup" style="flex-grow: 0;">
                 <engine:VisualElement name="ShowBar" style="flex-grow: 1;">
-                    <engine:Button name="ToolBarShowButton" icon-image="project://database/Assets/UI%20Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss?fileID=-4528830608231651361&amp;guid=28ee427162c361e4c9de3a29022416fa&amp;type=3#arrow-up@2x" class="minibutton" style="margin-right: 0; margin-top: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; border-left-width: 0; border-top-left-radius: 0; border-top-width: 1px; border-bottom-width: 0; border-right-width: 0; border-left-color: rgb(24, 24, 24); border-right-color: rgb(24, 24, 24); border-top-color: rgb(24, 24, 24); border-bottom-color: rgb(24, 24, 24);" />
+                    <engine:Button name="TilePickerShowButton" icon-image="project://database/Assets/UI%20Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss?fileID=-4528830608231651361&amp;guid=28ee427162c361e4c9de3a29022416fa&amp;type=3#arrow-up@2x" class="minibutton" style="margin-right: 0; margin-top: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; border-left-width: 0; border-top-left-radius: 0; border-top-width: 1px; border-bottom-width: 0; border-right-width: 0; border-left-color: rgb(24, 24, 24); border-right-color: rgb(24, 24, 24); border-top-color: rgb(24, 24, 24); border-bottom-color: rgb(24, 24, 24);" />
                 </engine:VisualElement>
-                <engine:VisualElement name="ToolBarMenu" class="collapsable" style="flex-grow: 1; overflow: hidden;">
-                    <ObstacleCompendiumView name="ObstacleCompendiumView" compendium="project://database/Assets/Scripts/Data/Obstacles/ObstacleCompendium.asset?fileID=11400000&amp;guid=6504f452816d7494f8a9215e109f2d97&amp;type=2#ObstacleCompendium" num-rows="2" />
+                <engine:VisualElement name="CollapsableMenu" class="collapsable" style="flex-grow: 1; overflow: hidden; flex-direction: row;">
+                    <ObstacleCompendiumView name="ObstacleCompendiumView" compendium="project://database/Assets/Scripts/Data/Obstacles/ObstacleCompendium.asset?fileID=11400000&amp;guid=6504f452816d7494f8a9215e109f2d97&amp;type=2#ObstacleCompendium" num-rows="2" style="flex-grow: 1;" />
                 </engine:VisualElement>
             </engine:VisualElement>
             <engine:VisualElement name="ScoreHolder" picking-mode="Ignore" class="hide-edit" style="flex-grow: 1; position: absolute; top: 25px; right: 25px; flex-direction: column; align-items: center; -unity-text-outline-width: 0; -unity-text-outline-color: rgb(0, 0, 0); text-shadow: 1.8px 1.6px 1.5px rgb(67, 67, 67);">
                 <engine:Label text="0/3&#10;" />
                 <engine:Label text="0/3&#10;" />
                 <engine:Label text="0/3&#10;" />
+            </engine:VisualElement>
+            <engine:VisualElement name="ToolMenu" picking-mode="Ignore" class="hide-play hide-setup" style="flex-grow: 1; position: absolute; top: 25px; right: 25px; flex-direction: column; align-items: center; -unity-text-outline-width: 0; -unity-text-outline-color: rgb(0, 0, 0); text-shadow: 1.8px 1.6px 1.5px rgb(67, 67, 67);">
+                <engine:VisualElement name="RotationTool" style="flex-grow: 1; flex-direction: row;">
+                    <engine:Button name="RotateCCW" icon-image="project://database/Assets/UI%20Toolkit/Images/RotateCCW.png?fileID=2800000&amp;guid=6bb65edc0fc3c5644ab0b8666037b818&amp;type=3#RotateCCW" class="brush-button" />
+                    <engine:Button name="RotateCW" icon-image="project://database/Assets/UI%20Toolkit/Images/RotateCW.png?fileID=2800000&amp;guid=6011bdb37a2cb2e4aab45bb6ef6aa160&amp;type=3#RotateCW" class="brush-button" />
+                </engine:VisualElement>
+                <engine:VisualElement name="BrushSelect" style="flex-grow: 0; padding-top: 15px; padding-right: 15px; padding-bottom: 15px; padding-left: 15px;">
+                    <engine:Button name="Drag" icon-image="project://database/Assets/UI%20Toolkit/Images/Brushes/DragBrush.png?fileID=2800000&amp;guid=aeb99ceec078af1449fa8d304b2b934a&amp;type=3#DragBrush" class="brush-button" />
+                    <engine:Button name="Place" icon-image="project://database/Assets/UI%20Toolkit/Images/Brushes/PlaceBrush.png?fileID=2800000&amp;guid=0ba4f52966e3b354a89f4b851b4e8520&amp;type=3#PlaceBrush" class="brush-button" />
+                    <engine:Button name="Delete" icon-image="project://database/Assets/UI%20Toolkit/Images/Brushes/DeleteBrush.png?fileID=2800000&amp;guid=53b35ddca1e6fb040bfe007687d689ae&amp;type=3#DeleteBrush" class="brush-button" />
+                </engine:VisualElement>
             </engine:VisualElement>
             <engine:VisualElement name="NavHolder" style="flex-grow: 1; top: 0; left: 0; position: absolute;">
                 <engine:Button text="Back" name="BackButton" />

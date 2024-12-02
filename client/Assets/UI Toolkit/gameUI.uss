@@ -131,3 +131,12 @@
     height: auto;
     max-height: none;
 }
+
+.brush-button {
+    border-top-left-radius: 50px;
+    border-top-right-radius: 50px;
+    border-bottom-right-radius: 50px;
+    border-bottom-left-radius: 50px;
+    height: 100px;
+    width: 100px;
+}

@@ -45,22 +45,6 @@ public class WorldManager : MonoBehaviour
         instance = this;
     }
 
-    // Update is called once per frame
-    bool dragObstacleWithoutInput = false;
-    bool dragInputPressed = false;
-    void Update()
-    {
-        SimulateMouseEvents();
-
-        if (heldObstacle != null && (dragInputPressed || dragObstacleWithoutInput))
-        {
-            heldObstacle.DragToRay(GetCameraRay());
-        }
-
-        // reset button press input variables
-        dragInputPressed = false;
-    }
-
     public void HandleRotateCW(CallbackContext ctx)
     {
         if (ctx.performed) { RotateSelection(1); }
@@ -84,64 +68,9 @@ public class WorldManager : MonoBehaviour
     }
 
     private Obstacle? heldObstacle = null;
-    private bool clickedLast = false;
-    void SimulateMouseEvents()
-    {
-        // Ideally, these events should only be called after checking that an 
-        // incoming click did not successfully interact with the UI
-        bool clickingNow = Input.GetAxis("Fire1") > 0.1;
-        bool clickChanged = clickedLast != clickingNow;
-        if (clickingNow)
-        {
-            if (clickChanged)
-            {
-                // This is invoked through the UI subsystem
-                //HandleWorldMouseDown();
-            }
+    public Obstacle? HeldObstacle => heldObstacle;
 
-            HandleWorldMouseHeld();
-        }
-        else if (clickChanged) 
-        {
-            HandleWorldMouseUp();
-        }
-
-        clickedLast = clickingNow;
-    }
-
-    public void HandleWorldMouseDown()
-    {
-        HandleWorldMouseDown(GetCameraRay());
-    }
-    public void HandleWorldMouseDown(Ray cameraRay)
-    {
-        // For devices which support multiple pointers, ensure we don't try to pick up multiple obstacles at once
-        if (heldObstacle == null)
-        {
-            Obstacle? candidate = GetObstacleAtRay(cameraRay);
-            TryGrabOstacle(candidate);
-            ChangeSelection(candidate);
-        }
-        else if (dragObstacleWithoutInput)
-        {
-            // it is also possible we grabbed an obstacle and enabled the drag without input,
-            // in which case we now move into the usual strategy by disabling that flag
-            dragObstacleWithoutInput = false;
-        }
-    }
-    public void HandleWorldMouseHeld()
-    {
-        HandleWorldMouseHeld(GetCameraRay());
-    }
-    public void HandleWorldMouseHeld(Ray cameraRay)
-    {
-        dragInputPressed = true;
-    }
-    public void HandleWorldMouseUp()
-    {
-        HandleWorldMouseUp(GetCameraRay());
-    }
-    public void HandleWorldMouseUp(Ray cameraRay)
+    public void DropHeldObstacle()
     {
         if (heldObstacle != null)
         {
@@ -153,8 +82,16 @@ public class WorldManager : MonoBehaviour
         }
     }
 
+    public Obstacle? TryGrabObstacleAtPointer()
+    {
+        Obstacle? candidate = GetObstacleAtRay(GetCameraRay());
+        var success = TryGrabOstacle(candidate);
+        return success ? candidate : null;
+    }
     public bool TryGrabOstacle(Obstacle? newDragTarget)
     {
+        ChangeSelection(newDragTarget);
+
         //Debug.Log($"Attempting to start drag of obstacle {candidate}");
         if (newDragTarget != null && newDragTarget.CanBeMoved())
         {
@@ -291,15 +228,6 @@ public class WorldManager : MonoBehaviour
 
         return result;
     }
-    public void AttachObstacleToCursor(Obstacle target)
-    {
-        if (!dragInputPressed)
-        {
-            dragObstacleWithoutInput = true;
-        }
-        TryGrabOstacle(target);
-        ChangeSelection(target);
-    }
 
     /* ********************** *
      *     SCORE MANAGER      *
@@ -330,5 +258,41 @@ public class WorldManager : MonoBehaviour
     public List<ColorScore> GetScores()
     {
         return scores;
+    }
+
+    public Obstacle SpawnAndGrabObstacle(ObstacleData data, Vector3 position, Quaternion rotation)
+    {
+        DropHeldObstacle();
+
+        Obstacle newObstacle = SpawnObstacle(data);
+        newObstacle.MarkVolatile();
+        newObstacle.transform.SetPositionAndRotation(position, rotation);
+        TryGrabOstacle(newObstacle);
+        return newObstacle;
+    }
+
+    public IObstaclePlacementResult TrySpawnAndPlaceObstacle(ObstacleData data, Vector3 position, Quaternion rotation)
+    {
+        Vector2Int cell = World.GetCell(position);
+        Obstacle prefabScript = data.obstaclePrefab.GetComponent<Obstacle>();
+        var prefabResult = prefabScript.CanBePlacedNoInit(World, cell, rotation);
+        if (!prefabResult.Success)
+        {
+            return prefabResult.Blame(null);
+        }
+
+        Obstacle newObstacle = SpawnObstacle(data);
+        newObstacle.transform.SetPositionAndRotation(position, rotation);
+        newObstacle.MarkPositionDirty();
+
+        World.ScheduleSideEffectCheck(newObstacle);
+
+        return prefabResult.Blame(newObstacle);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool RaycastCameraRay(out Vector3 hit)
+    {
+        return activeWorld.Raycast(GetCameraRay(), out hit);
     }
 }
