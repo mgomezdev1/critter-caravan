@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
@@ -45,6 +46,33 @@ public class WorldManager : MonoBehaviour
         instance = this;
     }
 
+    private void Start()
+    {
+        StartCoroutine(CheckWorldStateCoroutine());
+    }
+
+    public const float WORLD_CHECK_COOLDOWN = 0.25f;
+    private IEnumerator CheckWorldStateCoroutine()
+    {
+        while (true)
+        {
+            if (GameMode == GameMode.LevelEdit)
+            {
+                var result = World.CheckAllValidObstacles();
+                if (!result.Success)
+                {
+                    HandlePlacementError(result, true, false);
+                }
+                else
+                {
+                    Debug.Log("No issues detected!");
+                }
+                // ui.SetTryOutButtonEnabled(result.Success);
+            }
+            yield return new WaitForSeconds(WORLD_CHECK_COOLDOWN);
+        }
+    }
+
     public void HandleRotateCW(CallbackContext ctx)
     {
         if (ctx.performed) { RotateSelection(1); }
@@ -82,9 +110,15 @@ public class WorldManager : MonoBehaviour
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Obstacle? GetObstacleAtPointer()
+    {
+        return GetObstacleAtRay(GetCameraRay());
+    }
+
     public Obstacle? TryGrabObstacleAtPointer()
     {
-        Obstacle? candidate = GetObstacleAtRay(GetCameraRay());
+        Obstacle? candidate = GetObstacleAtPointer();
         var success = TryGrabOstacle(candidate);
         return success ? candidate : null;
     }
@@ -142,14 +176,10 @@ public class WorldManager : MonoBehaviour
         }
     }
 
-    public void DisplayMessage(string message)
+    public void DisplayMessage(string message, float duration = INCOMPATIBILITY_DISPLAY_DURATION)
     {
         Debug.Log(message);
-        StartCoroutine(DisplayMessageCoroutine());
-    }
-    public IEnumerator DisplayMessageCoroutine()
-    {
-        yield break;
+        ui.DisplayMessage(message, duration);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -158,7 +188,7 @@ public class WorldManager : MonoBehaviour
         return activeWorld.GridCamera.ScreenPointToRay(Input.mousePosition);
     }
 
-    Obstacle? GetObstacleAtRay(Ray ray)
+    public Obstacle? GetObstacleAtRay(Ray ray)
     {
         if (!activeWorld.Raycast(ray, out Vector3 point))
             return null;
@@ -175,7 +205,22 @@ public class WorldManager : MonoBehaviour
             if (obstacle.IsDragging) return false;
         }
 
-        ResetScenario();
+        // If leaving Edit Mode, perform some world checks
+        if (this.gameMode == GameMode.LevelEdit && GameMode != GameMode.LevelEdit)
+        {
+            var worldValidResult = World.CheckValidObstacles(null);
+            if (!worldValidResult.Success)
+            {
+                HandlePlacementError(worldValidResult, false, true);
+                return false;
+            }
+            InitScenario();
+        }
+        else
+        {
+            ResetScenario();
+        }
+
         this.gameMode = gameMode;
         if (gameMode == GameMode.Setup)
         {
@@ -218,6 +263,11 @@ public class WorldManager : MonoBehaviour
     {
         ResetScores();
         activeWorld.HandleReset();
+    }
+
+    public void InitScenario()
+    {
+        activeWorld.HandleInit();
     }
 
     public Obstacle SpawnObstacle(ObstacleData template)
@@ -285,7 +335,8 @@ public class WorldManager : MonoBehaviour
         newObstacle.transform.SetPositionAndRotation(position, rotation);
         newObstacle.MarkPositionDirty();
 
-        World.ScheduleSideEffectCheck(newObstacle);
+        // We'll allow illegal states in the world in Edit Mode
+        // World.ScheduleSideEffectCheck(newObstacle);
 
         return prefabResult.Blame(newObstacle);
     }

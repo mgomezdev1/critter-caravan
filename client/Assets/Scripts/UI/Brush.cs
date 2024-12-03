@@ -176,7 +176,7 @@ public class DeleteBrush : Brush
 
     private void TryDeleteAtPointer()
     {
-        Obstacle? obstacle = WorldManager.Instance.TryGrabObstacleAtPointer();
+        Obstacle? obstacle = WorldManager.Instance.GetObstacleAtPointer();
         if (obstacle == null) return;
 
         if (obstacleNameFilter.Count == 0 || obstacleNameFilter.Contains(obstacle.ObstacleName))
@@ -202,6 +202,5 @@ public class DeleteBrush : Brush
         {
             obstacleNameFilter.Remove(obstacleName);
         }
-        
     }
 }

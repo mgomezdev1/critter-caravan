@@ -572,18 +572,31 @@ public class GridWorld : MonoBehaviour
         foreach (var obstacle in dynamicObstacles) yield return obstacle;
     }
 
-    public IObstaclePlacementResult CheckValidObstacles(Obstacle lastChanged)
+    public IObstaclePlacementResult CheckValidObstacles(Obstacle? lastChanged)
     {
         foreach (var obstacle in GetAllObstacles())
         {
-            Debug.Log($"Checking side-effect validity of {obstacle}");
+            //Debug.Log($"Checking side-effect validity of {obstacle}");
             if (obstacle == lastChanged) continue;
             var result = obstacle.CheckValidity();
             if (!result.Success) return result;
         }
         return new ObstaclePlacementSuccess(lastChanged);
     }
+    public IObstaclePlacementResult CheckAllValidObstacles()
+    {
+        IEnumerable<IObstaclePlacementResult> Checks()
+        {
+            foreach (var obstacle in GetAllObstacles())
+            {
+                var check = obstacle.CheckValidity();
+                if (!check.Success) yield return check;
+            }
+        };
+        return IObstaclePlacementResult.Combine(Checks());
+    }
 
+    // This is called when exiting Setup or Play mode.
     public void HandleReset()
     {
         timeFragment = 0;
@@ -592,6 +605,12 @@ public class GridWorld : MonoBehaviour
         {
             resettable.HandleReset();
         }
+    }
+
+    // This is called when entering Setup mode from Edit mode
+    internal void HandleInit()
+    {
+        
     }
 
     /* ****************** *

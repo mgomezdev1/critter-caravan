@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
@@ -120,19 +121,17 @@ public class UIManager : BaseUIManager
         var rotatorPanel = Q("RotationTool");
         rotatorPanel.Q<Button>("RotateCW").clicked += HandleRotateCW;
         rotatorPanel.Q<Button>("RotateCCW").clicked += HandleRotateCCW;
+
+        tryOutButton = Q<Button>("EditToSetupButton");
+
+        messageDisplay = Q("MessageDisplay");
+        messageDisplayLabel = messageDisplay.Q<Label>();
     }
 
     private void Start()
     {
         HandleMode(WorldManager.Instance.GameMode);
     }
-
-    // Update is called once per frame
-    private void Update()
-    {
-        
-    }
-
 
     public T Q<T>(string? name = null, string? className = null) where T : VisualElement
     {
@@ -316,5 +315,45 @@ public class UIManager : BaseUIManager
             );
             compendiumView.ObstacleDisplayRotation = MathLib.AngleFromVector2(obstacleSpawnRotation * Vector2.right); ;
         }
+    }
+
+    private Button tryOutButton;
+    public void SetTryOutButtonEnabled(bool success)
+    {
+        tryOutButton.enabledSelf = success;
+    }
+
+    private VisualElement messageDisplay;
+    private Label messageDisplayLabel;
+    private Coroutine? opacityCoroutine;
+    public void SetCentralMessageOpacity(float opacity)
+    {
+        messageDisplay.style.opacity = opacity;
+    }
+    public void ShowMessageDisplayAndFadeout(float duration, float initialOpacity = 1f)
+    {
+        if (opacityCoroutine != null)
+        {
+            StopCoroutine(opacityCoroutine);
+        }
+        opacityCoroutine = StartCoroutine(ShowMessageDisplayAndFadeoutCoro(duration, initialOpacity));
+    }
+    private IEnumerator ShowMessageDisplayAndFadeoutCoro(float duration, float initialOpacity)
+    {
+        SetCentralMessageOpacity(initialOpacity);
+        float t = duration;
+        while (t > 0f)
+        {
+            yield return new WaitForEndOfFrame();
+            t -= Time.deltaTime;
+            float opacity = Mathf.Clamp01(t / duration);
+            SetCentralMessageOpacity(opacity);
+        }
+    }
+
+    public void DisplayMessage(string message, float duration)
+    {
+        messageDisplayLabel.text = message;
+        ShowMessageDisplayAndFadeout(duration);
     }
 }

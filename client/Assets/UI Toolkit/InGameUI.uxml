@@ -104,6 +104,10 @@
                     <engine:Button text="Publish Level" name="PublishButton" enabled="false" />
                 </engine:VisualElement>
             </engine:VisualElement>
+            <engine:VisualElement name="MessageDisplay" class="abs-center panel" style="flex-direction: row; opacity: 0; max-width: 600px;">
+                <engine:VisualElement name="MessageDisplayGraphic" style="flex-grow: 1;" />
+                <engine:Label text="Testing with way longer text just because" name="MessageDisplayLabel" style="-unity-text-align: upper-center; white-space: normal;" />
+            </engine:VisualElement>
         </engine:VisualElement>
         <engine:VisualElement name="debug" class="debug" style="flex-grow: 1; position: absolute; top: 0; left: 0; right: auto; bottom: auto;">
             <engine:VisualElement name="debugrow" class="row-center display-label">

@@ -9,128 +9,6 @@ using UnityEngine.Events;
 using UnityEngine.LightTransport;
 
 #nullable enable
-public interface IObstaclePlacementResult
-{
-    public Obstacle? Obstacle { get; }
-    public bool Success { get; }
-    public string Reason { get; }
-
-    public IEnumerable<Obstacle> GetProblemObstacles();
-    public IObstaclePlacementResult Blame(Obstacle? otherObstacle);
-}
-public class ObstaclePlacementSuccess : IObstaclePlacementResult
-{
-    private readonly Obstacle? _obstacle;
-    public Obstacle? Obstacle => _obstacle;
-    public bool Success => true;
-    public string Reason => string.Empty;
-
-    public ObstaclePlacementSuccess(Obstacle? obstacle)
-    {
-        _obstacle = obstacle;
-    }
-    public IEnumerable<Obstacle> GetProblemObstacles() { yield break; }
-
-    public IObstaclePlacementResult Blame(Obstacle? otherObstacle)
-    {
-        return new ObstaclePlacementSuccess(otherObstacle);
-    }
-}
-public class ObstaclePlacementFailure : IObstaclePlacementResult 
-{
-    public readonly Obstacle? obstacle;
-    public Obstacle? Obstacle => obstacle;
-    public bool Success => false;
-    public string Reason { get; protected set; }
-
-    public ObstaclePlacementFailure(Obstacle? obstacle, string reason)
-    {
-        this.obstacle = obstacle;
-        Reason = reason;
-    }
-    public virtual IEnumerable<Obstacle> GetProblemObstacles() {
-        if (obstacle == null) yield break;
-        yield return obstacle; 
-    }
-
-    public virtual IObstaclePlacementResult Blame(Obstacle? otherObstacle)
-    {
-        return new ObstaclePlacementFailure(otherObstacle, Reason);
-    }
-
-    public override string ToString()
-    {
-        return Reason;
-    }
-}
-public class ObstacleConflict : ObstaclePlacementFailure
-{
-    public readonly Obstacle conflictObstacle;
-    public readonly Vector2Int conflictCell;
-
-    public ObstacleConflict(Obstacle? obstacle, Obstacle conflictObstacle, Vector2Int conflictCell)
-        : base(obstacle, string.Empty)
-    {
-        this.conflictObstacle = conflictObstacle;
-        this.conflictCell = conflictCell;
-        Reason = $"{obstacle?.ObstacleName ?? "obstacle"} infringes on the area of {conflictObstacle.ObstacleName} on cell {conflictCell}";
-    }
-
-    public override IEnumerable<Obstacle> GetProblemObstacles()
-    {
-        if (obstacle != null) yield return obstacle;
-        yield return conflictObstacle;
-    }
-
-    public override IObstaclePlacementResult Blame(Obstacle? otherObstacle)
-    {
-        return new ObstacleConflict(otherObstacle, conflictObstacle, conflictCell);
-    }
-}
-public class ObstacleMissingSurface : ObstaclePlacementFailure
-{
-    public readonly Vector2Int cell;
-    public readonly Vector2 normal;
-
-    public ObstacleMissingSurface(Obstacle? obstacle, Vector2Int cell, Vector2 normal)
-        : base(obstacle, string.Empty)
-    {
-        this.cell = cell;
-        this.normal = normal;
-        Reason = $"{obstacle?.ObstacleName ?? "obstacle"} requires a surface below cell {cell} to stand on.";
-    }
-
-    public override IObstaclePlacementResult Blame(Obstacle? otherObstacle)
-    {
-        return new ObstacleMissingSurface(otherObstacle, cell, normal);
-    }
-}
-public class ObstacleSideEffectFailure : ObstaclePlacementFailure
-{
-    public readonly ObstaclePlacementFailure baseFailure;
-    public ObstacleSideEffectFailure(Obstacle? movedObstacle, ObstaclePlacementFailure baseFailure) :
-        base(movedObstacle, string.Empty)
-    {
-        this.baseFailure = baseFailure;
-        Reason = baseFailure.Reason;
-    }
-
-    public override IEnumerable<Obstacle> GetProblemObstacles()
-    {
-        if (obstacle != null) yield return obstacle;
-        foreach (var otherObstacle in baseFailure.GetProblemObstacles())
-        {
-            if (obstacle == otherObstacle) continue;
-            yield return otherObstacle;
-        }
-    }
-
-    public override IObstaclePlacementResult Blame(Obstacle? otherObstacle)
-    {
-        return new ObstacleSideEffectFailure(otherObstacle, baseFailure);
-    }
-}
-
 #pragma warning disable CS8618
 public class Obstacle : CellElement
 {
@@ -472,7 +350,10 @@ public class Obstacle : CellElement
         Vector2Int newCell = World.GetCell(transform.position + desiredOffset);
         dragging = false;
         desiredOffset = Vector3.zero;
-        result = CanBePlaced(newCell, desiredRotation, draggingStartCell != newCell || draggingStartRotation != transform.rotation);
+        bool checkSideEffects = WorldManager.Instance.GameMode != GameMode.LevelEdit &&
+            (draggingStartCell != newCell || draggingStartRotation != transform.rotation);
+
+        result = CanBePlaced(newCell, desiredRotation, checkSideEffects);
         if (result.Success)
         {
             // Unmark volatile if successfully placed
