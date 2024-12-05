@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 42cdfe3ef6484e841a8a3a850a3c535c, type: 3}
-  m_Name: BaseBlock
+  m_Name: Quarter Pipe (Inner)
   m_EditorClassIdentifier: 
-  obstaclePrefab: {fileID: 288246387828494670, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
-  obstacleName: Solid Tile
-  obstacleSprite: {fileID: 21300000, guid: c35f36b34a8647c41a15a52c7860e25c, type: 3}
+  obstaclePrefab: {fileID: 9075939723519792956, guid: 2047c0b37e941784d93ad7424a0704b8, type: 3}
+  obstacleName: Quarter Pipe (Inner)
+  obstacleSprite: {fileID: 21300000, guid: 0051b33f622db854cb7063de10d84b2e, type: 3}

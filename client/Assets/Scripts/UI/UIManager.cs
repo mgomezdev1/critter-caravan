@@ -5,6 +5,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static UnityEngine.InputSystem.InputAction;
 
 # nullable enable
 public struct ColorScore
@@ -119,8 +120,8 @@ public class UIManager : BaseUIManager
         SelectBrush(defaultBrush);
 
         var rotatorPanel = Q("RotationTool");
-        rotatorPanel.Q<Button>("RotateCW").clicked += HandleRotateCW;
-        rotatorPanel.Q<Button>("RotateCCW").clicked += HandleRotateCCW;
+        rotatorPanel.Q<Button>("RotateCW").clicked += HandleRotateCWButton;
+        rotatorPanel.Q<Button>("RotateCCW").clicked += HandleRotateCCWButton;
 
         tryOutButton = Q<Button>("EditToSetupButton");
 
@@ -293,17 +294,28 @@ public class UIManager : BaseUIManager
         }
         bestButton.EnableInClassList(ACTIVE_BUTTON_CLASS, true);
     }
-    private void HandleRotateCW()
+
+    // Button input
+    private void HandleRotateCWButton()
     {
         HandleRotate(1);
     }
-    private void HandleRotateCCW()
+    private void HandleRotateCCWButton()
     {
         HandleRotate(-1);
     }
+    // Player input
+    public void HandleRotateCW(CallbackContext ctx)
+    {
+        if (ctx.performed) { HandleRotate(1); }
+    }
+    public void HandleRotateCCW(CallbackContext ctx)
+    {
+        if (ctx.performed) { HandleRotate(-1); }
+    }
     private void HandleRotate(int delta)
     {
-        if (WorldManager.Instance.HeldObstacle != null)
+        if (WorldManager.Instance.SelectedObstacle != null)
         {
             WorldManager.Instance.RotateSelection(delta);
         }
@@ -314,6 +326,16 @@ public class UIManager : BaseUIManager
                 MathLib.RotateVector2(obstacleSpawnRotation * Vector2.up, -90f * delta)
             );
             compendiumView.ObstacleDisplayRotation = MathLib.AngleFromVector2(obstacleSpawnRotation * Vector2.right); ;
+        }
+    }
+
+    public void HandleDelete(CallbackContext ctx)
+    {
+        Obstacle? target = WorldManager.Instance.SelectedObstacle;
+        if (ctx.performed && target != null)
+        {
+            if (WorldManager.Instance.GameMode != GameMode.LevelEdit) return;
+            WorldManager.Instance.DeleteObstacle(target);
         }
     }
 

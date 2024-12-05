@@ -125,7 +125,7 @@ public class CellElement : MonoBehaviour
         InvokeMoved(oldCell, oldRotation, newCell, newRotation);
     }
 
-    public void InvokeMoved(Vector2Int originCell, Quaternion originRotation, Vector2Int targetCell, Quaternion targetRotation)
+    public virtual void InvokeMoved(Vector2Int originCell, Quaternion originRotation, Vector2Int targetCell, Quaternion targetRotation)
     {
         MarkPositionDirty();
         if (didStart)
@@ -135,5 +135,10 @@ public class CellElement : MonoBehaviour
                 movable.AfterMove(originCell, originRotation, targetCell, targetRotation);
             }
         }
+    }
+
+    public virtual void AnimateTo(Vector2Int cell, Quaternion rotation)
+    {
+        MoveTo(cell, rotation);
     }
 }

@@ -56,6 +56,6 @@ public partial class ObstaclePicker : Button
 
     private void UpdateRotation()
     {
-        spriteHolder.style.rotate = new StyleRotate(new Rotate(rotation));
+        spriteHolder.style.rotate = new StyleRotate(new Rotate(-rotation));
     }
 }

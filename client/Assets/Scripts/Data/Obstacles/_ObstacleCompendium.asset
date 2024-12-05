@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3da4990a1fdeb7346b997e22600425fc, type: 3}
-  m_Name: ObstacleCompendium
+  m_Name: _ObstacleCompendium
   m_EditorClassIdentifier: 
   categories:
   - {fileID: 11400000, guid: d4dc7cb46c1666e468c22ec5f948774d, type: 2}
-  - {fileID: 11400000, guid: d4dc7cb46c1666e468c22ec5f948774d, type: 2}
-  - {fileID: 11400000, guid: d4dc7cb46c1666e468c22ec5f948774d, type: 2}
+  - {fileID: 11400000, guid: dfd2cb86f400e074384082f96246d270, type: 2}
+  - {fileID: 11400000, guid: 6283ae0fa83c76c47ba23f95b43f6bac, type: 2}

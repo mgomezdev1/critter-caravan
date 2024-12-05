@@ -28,7 +28,7 @@ public class DragBrush : Brush
 
     public override void Activate()
     {
-        // do nothing
+        ui.BrushObstacle = null;
     }
 
     public override void Deactivate()
@@ -70,6 +70,8 @@ public class PlaceBrush : Brush
     private Vector2Int lastCell;
     public const float PLACEMENT_ATTEMPT_COOLDOWN = 0.25f;
 
+    private ObstacleData? selectedObstacleCache;
+
     public PlaceBrush(UIManager ui) : base(ui)
     {
         lastPlaceAttemptTime = DateTime.Now;
@@ -77,12 +79,12 @@ public class PlaceBrush : Brush
 
     public override void Activate()
     {
-        // do nothing
+        ui.BrushObstacle = selectedObstacleCache;
     }
 
     public override void Deactivate()
     {
-        ui.BrushObstacle = null;
+        selectedObstacleCache = ui.BrushObstacle;
     }
 
     public override void HandleClick()

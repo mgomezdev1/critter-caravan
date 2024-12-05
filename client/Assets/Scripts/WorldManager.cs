@@ -73,28 +73,6 @@ public class WorldManager : MonoBehaviour
         }
     }
 
-    public void HandleRotateCW(CallbackContext ctx)
-    {
-        if (ctx.performed) { RotateSelection(1); }
-    }
-    public void HandleRotateCCW(CallbackContext ctx)
-    {
-        if (ctx.performed) { RotateSelection(-1); }
-    }
-    public void HandleDelete(CallbackContext ctx)
-    {
-        if (ctx.performed && gameMode == GameMode.LevelEdit && selectedObstacle != null)
-        {
-            Obstacle prevSelected = selectedObstacle;
-            if (heldObstacle == selectedObstacle)
-            {
-                heldObstacle = null;
-            }
-            ChangeSelection(null);
-            prevSelected.Delete();
-        }
-    }
-
     private Obstacle? heldObstacle = null;
     public Obstacle? HeldObstacle => heldObstacle;
 
@@ -141,6 +119,7 @@ public class WorldManager : MonoBehaviour
         }
     }
     private Obstacle? selectedObstacle;
+    public Obstacle? SelectedObstacle => selectedObstacle;
     private GameObject? activeSelectHighlight;
     public void ChangeSelection(Obstacle? newSelectTarget)
     {
@@ -162,8 +141,22 @@ public class WorldManager : MonoBehaviour
     {
         if (selectedObstacle == null) return;
         if (!selectedObstacle.CanBeMoved()) return;
-        selectedObstacle.Rotate(delta);
+        selectedObstacle.TryRotate(delta);
     }
+
+    public void DeleteObstacle(Obstacle target)
+    {
+        if (target == selectedObstacle)
+        {
+            ChangeSelection(null);
+        }
+        if (target == HeldObstacle)
+        {
+            DropHeldObstacle();
+        }
+        target.Delete();
+    }
+
 
     private const float INCOMPATIBILITY_DISPLAY_DURATION = 3.0f;
     public void HandlePlacementError(IObstaclePlacementResult placementResult, bool includeMovedObstacle = false, bool announceErrorReason = true)

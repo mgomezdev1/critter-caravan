@@ -578,6 +578,7 @@ public class GridWorld : MonoBehaviour
         {
             //Debug.Log($"Checking side-effect validity of {obstacle}");
             if (obstacle == lastChanged) continue;
+            if (obstacle.IsDragging) continue;
             var result = obstacle.CheckValidity();
             if (!result.Success) return result;
         }
@@ -589,6 +590,7 @@ public class GridWorld : MonoBehaviour
         {
             foreach (var obstacle in GetAllObstacles())
             {
+                if (obstacle.IsDragging) continue;
                 var check = obstacle.CheckValidity();
                 if (!check.Success) yield return check;
             }

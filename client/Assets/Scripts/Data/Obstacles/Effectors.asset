@@ -10,11 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 97766ad880f1f014e8876b6e0d8efb37, type: 3}
-  m_Name: Structural
+  m_Name: Effectors
   m_EditorClassIdentifier: 
-  categoryName: Structural
-  categoryIcon: {fileID: 21300000, guid: c35f36b34a8647c41a15a52c7860e25c, type: 3}
+  categoryName: Effectors
+  categoryIcon: {fileID: 21300000, guid: aa1ab1017fc455049b3343448fced32e, type: 3}
   obstacles:
-  - {fileID: 11400000, guid: 847feff1ec0f93841ad84bee4de774e0, type: 2}
-  - {fileID: 11400000, guid: 81918221f11c6594199238bc83c2275a, type: 2}
-  - {fileID: 11400000, guid: 38b1a6eb4c8b486499b1a1aac288b1d9, type: 2}
+  - {fileID: 11400000, guid: a9325a663424c1c40aa4c3baef1c5a3c, type: 2}

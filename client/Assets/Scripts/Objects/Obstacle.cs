@@ -156,7 +156,7 @@ public class Obstacle : CellElement
         }
 
         // Flag-based requirement testing
-        IObstaclePlacementResult extraReqTestResult = CheckValidity(origin, rotation);
+        IObstaclePlacementResult extraReqTestResult = CheckValidityNoInit(world, origin, rotation);
         if (!extraReqTestResult.Success) return extraReqTestResult;
 
         return new ObstaclePlacementSuccess(this);
@@ -169,10 +169,14 @@ public class Obstacle : CellElement
     }
     public IObstaclePlacementResult CheckValidity(Vector2Int newOrigin, Quaternion newRotation)
     {
+        return CheckValidityNoInit(World, newOrigin, newRotation);
+    }
+    public IObstaclePlacementResult CheckValidityNoInit(GridWorld world, Vector2Int newOrigin, Quaternion newRotation)
+    {
         if (Reqs.HasFlag(Requirements.OnSurface))
         {
             Vector2 rotatedNormal = newRotation * Vector2.up;
-            Surface? surface = World.GetSurface(newOrigin, rotatedNormal, MAX_SURFACE_NORMAL_SNAP, Surface.Flags.Virtual);
+            Surface? surface = world.GetSurface(newOrigin, rotatedNormal, MAX_SURFACE_NORMAL_SNAP, Surface.Flags.Virtual);
             if (surface == null)
             {
                 return new ObstacleMissingSurface(this, newOrigin, rotatedNormal);
@@ -412,7 +416,7 @@ public class Obstacle : CellElement
     {
         Tuple<Vector3, Quaternion> result = new(t.position, t.rotation);
         transformStack.Push(result);
-        Debug.Log($"Saving pos-rot pair {result}");
+        // Debug.Log($"Saving pos-rot pair {result}");
         return result;
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -424,7 +428,7 @@ public class Obstacle : CellElement
     {
         Tuple<Vector3, Quaternion> result = transformStack.Pop();
         t.SetPositionAndRotation(result.Item1, result.Item2);
-        Debug.Log($"Saving pos-rot pair {result}");
+        // Debug.Log($"Saving pos-rot pair {result}");
         return result; 
     }
 
@@ -444,7 +448,7 @@ public class Obstacle : CellElement
         Debug.Log($"Dragging {this} to ray, resulting offset = {desiredOffset}");
     }
 
-    public void Rotate(int delta)
+    public bool TryRotate(int delta)
     {
         Vector3 newUp = MathLib.RotateVector2(transform.rotation * Vector2.up, delta * (-90));
         Quaternion candidateRotation = Quaternion.LookRotation(Vector3.forward, newUp);
@@ -455,14 +459,12 @@ public class Obstacle : CellElement
             {
                 WorldManager.Instance.HandlePlacementError(placementResult, true);
                 // TODO: Consider adding a "wiggle" animation
-                return;
+                return false;
             }
         }
-        
-        SaveTarget();
-        desiredRotation = candidateRotation;
-        transform.rotation = desiredRotation;
-        LoadTarget();
+
+        AnimateTo(Cell, candidateRotation);
+        return true;
     }
 
     public void Delete()
@@ -471,6 +473,7 @@ public class Obstacle : CellElement
         if (World != null && World.gameObject.activeInHierarchy)
         {
             moveTarget.parent = null;
+            moveTarget.localScale = Vector3.one;
             World.AnimateDisappearance(moveTarget.gameObject, 0.5f, true);
         }
         // then destroy this object immediately
@@ -485,5 +488,17 @@ public class Obstacle : CellElement
     public override string ToString()
     {
         return $"Obstacle {obstacleName} in cell {Cell}, dragging={dragging}";
+    }
+
+    public override void InvokeMoved(Vector2Int originCell, Quaternion originRotation, Vector2Int targetCell, Quaternion targetRotation) { 
+        base.InvokeMoved(originCell, originRotation, targetCell, targetRotation);
+        this.desiredRotation = targetRotation;
+    }
+
+    public override void AnimateTo(Vector2Int cell, Quaternion rotation)
+    {
+        SaveTarget();
+        MoveTo(cell, rotation);
+        LoadTarget();
     }
 }

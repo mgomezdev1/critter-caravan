@@ -1,4 +1,7 @@
+using Extensions;
+using NUnit.Framework;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.UI;
 
@@ -28,7 +31,7 @@ public class LineEmitter : CellBehaviour<Obstacle>, IMovable
     void Start()
     {
         RespawnLine();
-        World.OnSurfacesUpdated.AddListener(RespawnLineSafe);
+        World.OnSurfacesUpdated.AddListener(() => RespawnLineSafe());
         CellComponent.OnDragStart.AddListener(DestroySpawnedObjects);
         // no need to hook up OnDragEnd because IMovable's AfterMove handles a broader case.
     }
@@ -48,11 +51,12 @@ public class LineEmitter : CellBehaviour<Obstacle>, IMovable
     {
         foreach (GameObject go in spawnedObjects)
         {
+            if (go == null) continue;
             DestroySpawnedObject(go);
         }
         spawnedObjects.Clear();
     }
-    public void DestroySpawnedObject(GameObject go)
+    private void DestroySpawnedObject(GameObject go)
     {
         if (go.TryGetComponent(out Obstacle obstacle))
         {
@@ -64,15 +68,16 @@ public class LineEmitter : CellBehaviour<Obstacle>, IMovable
         }
     }
 
-    public void RespawnLineSafe()
+    public void RespawnLineSafe(bool tryReuseObjects = true, bool alwaysAnimate = false)
     {
         World.SuppressUpdates();
-        RespawnLine();
+        RespawnLine(tryReuseObjects, alwaysAnimate);
         World.RestoreUpdates();
     }
 
-    public void RespawnLine(bool tryReuseObjects = true)
+    public void RespawnLine(bool tryReuseObjects = true, bool alwaysAnimate = false)
     {
+        Debug.Log($"Respawning line for {gameObject.name} w/ tryReuseObjects={tryReuseObjects}");
         if (!tryReuseObjects)
         {
             DestroySpawnedObjects();
@@ -94,56 +99,87 @@ public class LineEmitter : CellBehaviour<Obstacle>, IMovable
             cells.Add(cell);
         }
 
+        if (cells.Count == 0)
+        {
+            DestroySpawnedObjects();
+            return;
+        }
+
+        // Ensure spawnedObjects and cells has the same length
+        int tailPos = spawnedObjects.Count - 1;
+        while (spawnedObjects.Count < cells.Count)
+        {
+            spawnedObjects.Add(null);
+        }
+        // Ensure that the old tail, if it exists, is in the last position of SpawnedObjects
+        if (tailPos >= 1) // -1 means nothing exists, 0 is always the head.
+        {
+            spawnedObjects.Swap(cells.Count - 1, tailPos);
+        }
+        while (spawnedObjects.Count > cells.Count)
+        {
+            // remove from the end for efficient O(1) removal rather than O(n), assuming ArrayList
+            var target = spawnedObjects[^1];
+            spawnedObjects.RemoveAt(spawnedObjects.Count - 1);
+            if (target != null)
+            {
+                DestroySpawnedObject(target);
+            }
+        }
+
         for (int i = 0; i < cells.Count; ++i)
         {
-            GameObject target;
+            GameObject target = spawnedObjects[i];
             bool spawned = false;
-            if (i < spawnedObjects.Count)
-            {
-                target = spawnedObjects[i];
-                target.transform.parent = transform;
-            }
-            else
+
+            if (target == null) // populate null elements in spawnedObjects
             {
                 GameObject prefab =
                 i == 0 ? headPrefab :
                 i == cells.Count - 1 ? tailPrefab :
                 bodyPrefab;
 
-                target = Instantiate(prefab, transform);
-                spawnedObjects.Add(target);
+                target = Instantiate(prefab);
+                target.transform.SetPositionAndRotation(World.GetCellCenter(cells[i]), spawnRotation);
+                spawnedObjects[i] = target;
                 spawned = true;
             }
-
+            // avoid parenting (test)
+            // target.transform.parent = transform;
             Vector3 lastPos = target.transform.position;
+
             if (target.TryGetComponent(out CellElement spawnedCellElement))
             {
-                spawnedCellElement.Initialize(World);
-                spawnedCellElement.Generated = true;
+                if (spawned)
+                {
+                    spawnedCellElement.Initialize(World);
+                    spawnedCellElement.Generated = true;
+                }
+                else
+                {
+                    spawnedCellElement.MoveTo(cells[i], spawnRotation);
+                }
+
                 if (propagateColor)
                 {
                     spawnedCellElement.Color = CellComponent.Color;
                 }
-
-                spawnedCellElement.MoveTo(cells[i], spawnRotation);
             }
             else
             {
                 target.transform.SetPositionAndRotation(World.GetCellCenter(cells[i]), spawnRotation);
             }
 
+            // World.AnimateAppearance(target, 0.5f);
             // only animate if we moved the object or created it anew
-            if (spawned || Vector3.Distance(lastPos, target.transform.position) > 0.1f) { 
+            if (alwaysAnimate || spawned || Vector3.Distance(lastPos, target.transform.position) > 0.1f) { 
                 World.AnimateAppearance(target, 0.5f); 
             }
         }
 
-        while (spawnedObjects.Count > cells.Count)
-        {
-            // remove from the end for efficient O(1) removal rather than O(n), assuming ArrayList
-            DestroySpawnedObject(spawnedObjects[^1]);
-            spawnedObjects.RemoveAt(spawnedObjects.Count - 1);
-        }
+        // no null or duplicate references are allowable
+        Assert.True(spawnedObjects.All(e => e != null));
+        Assert.True(spawnedObjects.Counts().Values.All(cnt => cnt == 1));
     }
     public Vector2 GetRotatedPropagationVector()
     {
@@ -206,6 +242,7 @@ public class LineEmitter : CellBehaviour<Obstacle>, IMovable
 
     public void AfterMove(Vector2Int originCell, Quaternion originRotation, Vector2Int targetCell, Quaternion targetRotation)
     {
-        RespawnLineSafe();
+        // only reuse objects if we didn't change our position or rotation
+        RespawnLineSafe(tryReuseObjects: originCell == targetCell && originRotation == targetRotation);
     }
 }
