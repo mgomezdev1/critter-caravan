@@ -4,7 +4,7 @@ using UnityEngine;
 
 #nullable enable
 #pragma warning disable CS8618
-public class SingleSurface : CellBehaviour<Obstacle>, IMovable
+public class SingleSurface : CellBehaviour<Obstacle>, IMovable, IHasSurfaces
 {
     [SerializeField] [Range(0, 360)] private float wallAngle;
     [SerializeField] private Vector2 wallOffset = Vector2.zero;
@@ -102,5 +102,10 @@ public class SingleSurface : CellBehaviour<Obstacle>, IMovable
             World.DeregisterSurface(surface);
             surface = null;
         }
+    }
+
+    public IEnumerable<Surface> GetSurfaces()
+    {
+        yield return GetSurface(true);
     }
 }

@@ -263,10 +263,17 @@ public class WorldManager : MonoBehaviour
         activeWorld.HandleInit();
     }
 
-    public Obstacle SpawnObstacle(ObstacleData template)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Obstacle SpawnObstacle(ObstacleData template, Vector2Int cell, Quaternion rotation, bool markVolatile = false)
     {
-        GameObject spawned = Instantiate(template.obstaclePrefab, activeWorld.transform);
+        var position = activeWorld.GetCellCenter(cell);
+        return SpawnObstacle(template, position, rotation, markVolatile);
+    }
+    public Obstacle SpawnObstacle(ObstacleData template, Vector3 position, Quaternion rotation, bool markVolatile = false)
+    {
+        GameObject spawned = Instantiate(template.obstaclePrefab, position, rotation, activeWorld.transform);
         Obstacle result = spawned.GetComponent<Obstacle>();
+        if (markVolatile) result.MarkVolatile();
         result.Initialize(activeWorld);
 
         return result;
@@ -275,7 +282,7 @@ public class WorldManager : MonoBehaviour
     /* ********************** *
      *     SCORE MANAGER      *
      * ********************** */
-    private List<ColorScore> scores = new();
+    private readonly List<ColorScore> scores = new();
     public void ResetScores()
     {
         scores.Clear();
@@ -307,9 +314,7 @@ public class WorldManager : MonoBehaviour
     {
         DropHeldObstacle();
 
-        Obstacle newObstacle = SpawnObstacle(data);
-        newObstacle.MarkVolatile();
-        newObstacle.transform.SetPositionAndRotation(position, rotation);
+        Obstacle newObstacle = SpawnObstacle(data, position, rotation, true);
         TryGrabOstacle(newObstacle);
         return newObstacle;
     }
@@ -324,9 +329,7 @@ public class WorldManager : MonoBehaviour
             return prefabResult.Blame(null);
         }
 
-        Obstacle newObstacle = SpawnObstacle(data);
-        newObstacle.transform.SetPositionAndRotation(position, rotation);
-        newObstacle.MarkPositionDirty();
+        Obstacle newObstacle = SpawnObstacle(data, position, rotation);
 
         // We'll allow illegal states in the world in Edit Mode
         // World.ScheduleSideEffectCheck(newObstacle);

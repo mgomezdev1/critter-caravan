@@ -151,7 +151,7 @@ public class GridWorld : MonoBehaviour
     private readonly HashSet<Obstacle> dynamicObstacles = new();
     public void RegisterObstacle(Obstacle obstacle)
     {
-        if (obstacle.IsFixed)
+        if (obstacle.IsFixed && obstacle.OccupiesCells)
         {
             foreach (var cell in obstacle.GetOccupiedCells())
             {
@@ -173,7 +173,7 @@ public class GridWorld : MonoBehaviour
     }
     public bool DeregisterObstacleInCell(Obstacle obstacle, Vector2Int origin)
     {
-        if (obstacle.IsFixed)
+        if (obstacle.IsFixed && obstacle.OccupiesCells)
         {
             bool anythingRemoved = false;
             foreach (var cell in obstacle.GetOccupiedCells(origin))
@@ -446,23 +446,61 @@ public class GridWorld : MonoBehaviour
         }
     }
 
-    // CAMERA LOGIC
-    public void ReadjustCameraPosition()
+    public int GetIdFromCell(Vector2Int cell)
     {
-        gridCamera.transform.position = GetCameraPositionForGridVision(Vector2Int.zero, gridSize - Vector2Int.one);
+        return cell.y * gridSize.x + cell.x;
+    }
+    public Vector2Int GetCellFromId(int id)
+    {
+        return new(id % gridSize.x, id / gridSize.x);
     }
 
-    public Vector3 GetCameraPositionForGridVision(Vector2Int bottomLeftCell, Vector2Int topRightCell)
+    public void Clear()
     {
-        float tangentHeight = Mathf.Tan(gridCamera.fieldOfView / 2 * Mathf.Deg2Rad);
-        float tangentWidth = tangentHeight * gridCamera.aspect;
-        Vector2 requiredSize = (topRightCell - bottomLeftCell + Vector2.one) * gridScale + 2 * margin;
-        float requiredDistance = Mathf.Max(
-            requiredSize.y / (2 * tangentHeight),
-            requiredSize.x / (2 * tangentWidth)
-        );
-        Vector3 cameraFocusPoint = (GetCellCenter(bottomLeftCell) + GetCellCenter(topRightCell)) / 2;
-        return cameraFocusPoint + Vector3.back * (requiredDistance + gridDepth / 2);
+        foreach (var obstacle in GetAllObstacles())
+        {
+            obstacle.Delete();
+        }
+        fixedObstacles.Clear();
+        dynamicObstacles.Clear();
+        foreach (var entity in registeredEntities)
+        {
+            Destroy(entity);
+        }
+        registeredEntities.Clear();
+        ResetSurfaces();
+        ResetEffectors();
+        borderSurfaceCache = null;
+    }
+    public void SetSize(Vector2Int size)
+    {
+        for (int x = 0; x < gridSize.x; x++)
+        {
+            for (int y = 0; y < gridSize.y; y++)
+            {
+                if (x < size.x && y < size.y) continue;
+                Vector2Int cell = new(x, y);
+                if (fixedObstacles.TryGetValue(cell, out Obstacle? obstacle))
+                {
+                    obstacle.Delete();
+                    fixedObstacles.Remove(cell);
+                }
+                surfaces.Remove(cell);
+            }
+        }
+        foreach (var dynObstacle in new HashSet<Obstacle>(dynamicObstacles))
+        {
+            if (dynObstacle.Cell.x >= size.x || dynObstacle.Cell.y >= size.y)
+            {
+                dynObstacle.Delete();
+                dynamicObstacles.Remove(dynObstacle);
+            }
+        }
+        gridSize = size;
+        foreach (var surface in GetBorderSurfaces(false))
+        {
+            RegisterSurface(surface);
+        }
     }
 
     List<Surface>? borderSurfaceCache = null;
@@ -474,7 +512,18 @@ public class GridWorld : MonoBehaviour
             return borderSurfaceCache;
         }
 
-        borderSurfaceCache = new List<Surface>();
+        if (borderSurfaceCache != null)
+        {
+            foreach (var oldBorderSurface in borderSurfaceCache)
+            {
+                DeregisterSurface(oldBorderSurface);
+            }
+            borderSurfaceCache.Clear();
+        }
+        else
+        {
+            borderSurfaceCache = new List<Surface>();
+        }
 
         for (int x = 0; x < GridSize.x; x++)
         {
@@ -614,7 +663,27 @@ public class GridWorld : MonoBehaviour
     {
         
     }
+    #region camera
+    // CAMERA LOGIC
+    public void ReadjustCameraPosition()
+    {
+        gridCamera.transform.position = GetCameraPositionForGridVision(Vector2Int.zero, gridSize - Vector2Int.one);
+    }
 
+    public Vector3 GetCameraPositionForGridVision(Vector2Int bottomLeftCell, Vector2Int topRightCell)
+    {
+        float tangentHeight = Mathf.Tan(gridCamera.fieldOfView / 2 * Mathf.Deg2Rad);
+        float tangentWidth = tangentHeight * gridCamera.aspect;
+        Vector2 requiredSize = (topRightCell - bottomLeftCell + Vector2.one) * gridScale + 2 * margin;
+        float requiredDistance = Mathf.Max(
+            requiredSize.y / (2 * tangentHeight),
+            requiredSize.x / (2 * tangentWidth)
+        );
+        Vector3 cameraFocusPoint = (GetCellCenter(bottomLeftCell) + GetCellCenter(topRightCell)) / 2;
+        return cameraFocusPoint + Vector3.back * (requiredDistance + gridDepth / 2);
+    }
+    #endregion camera
+    #region ux
     /* ****************** *
      *         UX         *
      * ****************** */
@@ -751,6 +820,7 @@ public class GridWorld : MonoBehaviour
     {
         uncheckedObstacles.Add(newObstacle);
     }
+    #endregion ux
 }
 
 # if UNITY_EDITOR

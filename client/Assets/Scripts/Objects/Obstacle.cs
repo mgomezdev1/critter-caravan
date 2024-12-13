@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
@@ -25,20 +26,24 @@ public class Obstacle : CellElement
         Live = 2
     }
 
-    [SerializeField] List<Vector2Int> occupiedOffsets;
-    [SerializeField] List<MeshRenderer> incompatibilityDisplays = new();
-    [SerializeField] MoveType moveType = MoveType.Fixed;
-    [SerializeField] private string obstacleName = "Obstacle";
+    [SerializeField] private List<Vector2Int> occupiedOffsets;
+    [SerializeField] private List<MeshRenderer> incompatibilityDisplays = new();
+    [SerializeField] private MoveType moveType = MoveType.Fixed;
+    [SerializeField] private ObstacleData? staticData;
     [SerializeField] private Requirements requirements = Requirements.None;
     [SerializeField] private Transform moveTarget;
     [SerializeField] private List<Effector> autoAssignSurfaceEffectors;
-    public string ObstacleName => obstacleName;
+    public string ObstacleName => staticData != null ? staticData.obstacleName : "Obstacle";
     public bool IsFixed => moveType == MoveType.Fixed;
     public bool IsFree => moveType == MoveType.Free;
     public bool IsLive => moveType == MoveType.Live;
-    public MoveType MoveMode => moveType;
     public Requirements Reqs => requirements;
     public Transform MoveTarget => moveTarget;
+    public MoveType MoveMode
+    {
+        get => moveType;
+        set => moveType = value;
+    }
 
     private bool isVolatile = false;
     public bool Volatile => isVolatile;
@@ -50,31 +55,17 @@ public class Obstacle : CellElement
     protected override void Awake()
     {
         base.Awake();
-        desiredRotation = moveTarget.rotation;
     }
 
     protected override void Start()
     {
         base.Start();
-        desiredRotation = transform.rotation;
-        if (!Volatile)
-            World.RegisterObstacle(this);
     }
 
     protected override void Update()
     {
         base.Update();
         MoveToOffset();
-    }
-
-    protected override void OnDestroy()
-    {
-        base.OnDestroy();
-        var world = World;
-        if (world != null)
-        {
-            world.DeregisterObstacle(this);
-        }
     }
 
     private void OnDrawGizmosSelected()
@@ -85,6 +76,20 @@ public class Obstacle : CellElement
             Vector3 center = World.GetCellCenter(Cell + offset);
             Gizmos.DrawWireCube(center, Vector3.one * (World.GridScale * 0.9f));
         }
+    }
+
+    protected override void HandleDeinit()
+    {
+        if (this.world == null) return;
+        base.HandleDeinit();
+        this.world.DeregisterObstacle(this);
+    }
+    protected override void HandleInit()
+    {
+        if (this.world == null) return;
+        this.world.RegisterObstacle(this);
+        this.desiredRotation = transform.rotation;
+        base.HandleInit();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -262,13 +267,13 @@ public class Obstacle : CellElement
     private Quaternion draggingStartRotation = Quaternion.identity;
     public bool CanBeMoved()
     {
-        switch (WorldManager.Instance.GameMode)
+        return WorldManager.Instance.GameMode switch
         {
-            case GameMode.LevelEdit: return true;
-            case GameMode.Setup: return !IsFixed;
-            case GameMode.Play: return IsLive;
-            default: return false;
-        }
+            GameMode.LevelEdit => true,
+            GameMode.Setup => !IsFixed,
+            GameMode.Play => IsLive,
+            _ => false,
+        };
     }
 
     private Vector3 dragVelocity = Vector3.zero;
@@ -282,6 +287,9 @@ public class Obstacle : CellElement
     [SerializeField] private float rotationAngularVelocityDegrees = 480;
 
     private Vector3 DragOffset => Vector3.back * (World.GridDepth * 1);
+
+    public bool OccupiesCells => occupiedOffsets.Count > 0;
+
     private void MoveToOffset()
     {
         Vector3 initialPosition = moveTarget.position;
@@ -487,7 +495,7 @@ public class Obstacle : CellElement
 
     public override string ToString()
     {
-        return $"Obstacle {obstacleName} in cell {Cell}, dragging={dragging}";
+        return $"Obstacle {ObstacleName} in cell {Cell}, dragging={dragging}";
     }
 
     public override void InvokeMoved(Vector2Int originCell, Quaternion originRotation, Vector2Int targetCell, Quaternion targetRotation) { 

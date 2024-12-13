@@ -54,27 +54,29 @@
                     <ObstacleCompendiumView name="ObstacleCompendiumView" compendium="project://database/Assets/Scripts/Data/Obstacles/ObstacleCompendium.asset?fileID=11400000&amp;guid=6504f452816d7494f8a9215e109f2d97&amp;type=2#ObstacleCompendium" num-rows="2" style="flex-grow: 1;" />
                 </engine:VisualElement>
             </engine:VisualElement>
-            <engine:VisualElement name="ScoreHolder" picking-mode="Ignore" class="hide-edit" style="flex-grow: 1; position: absolute; top: 25px; right: 25px; flex-direction: column; align-items: center; -unity-text-outline-width: 0; -unity-text-outline-color: rgb(0, 0, 0); text-shadow: 1.8px 1.6px 1.5px rgb(67, 67, 67);">
-                <engine:Label text="0/3&#10;" />
-                <engine:Label text="0/3&#10;" />
-                <engine:Label text="0/3&#10;" />
-            </engine:VisualElement>
-            <engine:VisualElement name="ToolMenu" picking-mode="Ignore" class="hide-play hide-setup" style="flex-grow: 1; position: absolute; top: 25px; right: 25px; flex-direction: column; align-items: center; -unity-text-outline-width: 0; -unity-text-outline-color: rgb(0, 0, 0); text-shadow: 1.8px 1.6px 1.5px rgb(67, 67, 67);">
-                <engine:VisualElement name="RotationTool" style="flex-grow: 1; flex-direction: row;">
-                    <engine:Button name="RotateCCW" icon-image="project://database/Assets/UI%20Toolkit/Images/RotateCCW.png?fileID=2800000&amp;guid=6bb65edc0fc3c5644ab0b8666037b818&amp;type=3#RotateCCW" class="brush-button" />
-                    <engine:Button name="RotateCW" icon-image="project://database/Assets/UI%20Toolkit/Images/RotateCW.png?fileID=2800000&amp;guid=6011bdb37a2cb2e4aab45bb6ef6aa160&amp;type=3#RotateCW" class="brush-button" />
-                </engine:VisualElement>
-                <engine:VisualElement name="BrushSelect" style="flex-grow: 0; padding-top: 15px; padding-right: 15px; padding-bottom: 15px; padding-left: 15px;">
-                    <engine:Button name="Drag" icon-image="project://database/Assets/UI%20Toolkit/Images/Brushes/DragBrush.png?fileID=2800000&amp;guid=aeb99ceec078af1449fa8d304b2b934a&amp;type=3#DragBrush" class="brush-button" />
-                    <engine:Button name="Place" icon-image="project://database/Assets/UI%20Toolkit/Images/Brushes/PlaceBrush.png?fileID=2800000&amp;guid=0ba4f52966e3b354a89f4b851b4e8520&amp;type=3#PlaceBrush" class="brush-button" />
-                    <engine:Button name="Delete" icon-image="project://database/Assets/UI%20Toolkit/Images/Brushes/DeleteBrush.png?fileID=2800000&amp;guid=53b35ddca1e6fb040bfe007687d689ae&amp;type=3#DeleteBrush" class="brush-button" />
+            <engine:VisualElement name="TopRightTools" style="flex-grow: 1; position: absolute; top: 25px; right: 25px; flex-direction: row-reverse;">
+                <engine:VisualElement name="ToolMenu" picking-mode="Ignore" class="hide-play" style="flex-grow: 1; flex-direction: column; align-items: center; -unity-text-outline-width: 0; -unity-text-outline-color: rgb(0, 0, 0); text-shadow: 1.8px 1.6px 1.5px rgb(67, 67, 67);">
+                    <engine:VisualElement name="RotationTool" style="flex-grow: 1; flex-direction: row;">
+                        <engine:Button name="RotateCCW" icon-image="project://database/Assets/UI%20Toolkit/Images/RotateCCW.png?fileID=2800000&amp;guid=6bb65edc0fc3c5644ab0b8666037b818&amp;type=3#RotateCCW" class="brush-button" />
+                        <engine:Button name="RotateCW" icon-image="project://database/Assets/UI%20Toolkit/Images/RotateCW.png?fileID=2800000&amp;guid=6011bdb37a2cb2e4aab45bb6ef6aa160&amp;type=3#RotateCW" class="brush-button" />
+                    </engine:VisualElement>
+                    <engine:VisualElement name="BrushSelect" class="hide-setup" style="flex-grow: 0; padding-top: 15px; padding-right: 15px; padding-bottom: 15px; padding-left: 15px;">
+                        <engine:Button name="Drag" icon-image="project://database/Assets/UI%20Toolkit/Images/Brushes/DragBrush.png?fileID=2800000&amp;guid=aeb99ceec078af1449fa8d304b2b934a&amp;type=3#DragBrush" class="brush-button" />
+                        <engine:Button name="Place" icon-image="project://database/Assets/UI%20Toolkit/Images/Brushes/PlaceBrush.png?fileID=2800000&amp;guid=0ba4f52966e3b354a89f4b851b4e8520&amp;type=3#PlaceBrush" class="brush-button" />
+                        <engine:Button name="Delete" icon-image="project://database/Assets/UI%20Toolkit/Images/Brushes/DeleteBrush.png?fileID=2800000&amp;guid=53b35ddca1e6fb040bfe007687d689ae&amp;type=3#DeleteBrush" class="brush-button" />
+                    </engine:VisualElement>
+                    <engine:VisualElement name="ScoreHolder" picking-mode="Ignore" class="hide-edit" style="flex-grow: 1; flex-direction: column; align-items: center; -unity-text-outline-width: 0; -unity-text-outline-color: rgb(0, 0, 0); text-shadow: 1.8px 1.6px 1.5px rgb(67, 67, 67); align-self: stretch;">
+                        <engine:Label text="0/3&#10;" />
+                        <engine:Label text="0/3&#10;" />
+                        <engine:Label text="0/3&#10;" />
+                    </engine:VisualElement>
                 </engine:VisualElement>
             </engine:VisualElement>
             <engine:VisualElement name="NavHolder" style="flex-grow: 1; top: 0; left: 0; position: absolute;">
                 <engine:Button text="Back" name="BackButton" />
                 <engine:Button text="Settings" name="SettingsButton" />
             </engine:VisualElement>
-            <engine:VisualElement name="LevelOptions" class="abs-center panel hidden">
+            <engine:VisualElement name="LevelOptions" class="abs-center panel" style="max-width: 600px; top: 541px; left: 960px;">
                 <engine:Button text="Back" name="BackButton" class="back-button" />
                 <engine:VisualElement name="NameField" class="field" style="flex-grow: 1;">
                     <engine:Label text="Level Name" name="LevelNameLabel" class="field-label" style="-unity-text-align: upper-left;" />
@@ -88,14 +90,16 @@
                     <engine:Label text="Your name sucks, change it" name="LevelNameError" class="field-error" style="-unity-text-align: upper-left; padding-left: 0; margin-left: 8px; margin-top: -2px;" />
                 </engine:VisualElement>
                 <engine:VisualElement name="DataField" class="field" style="flex-grow: 1;">
-                    <engine:Label text="Level Data" name="LevelNameLabel" class="field-label" style="-unity-text-align: upper-left;" />
-                    <engine:VisualElement name="LevelNameFieldRow" style="flex-grow: 1; min-width: 500px; flex-direction: row;">
-                        <engine:TextField placeholder-text="your level name" name="LevelName" style="flex-grow: 1;" />
+                    <engine:Label text="Level Data" name="FieldLabel" class="field-label" style="-unity-text-align: upper-left;" />
+                    <engine:VisualElement name="FieldRow" style="flex-grow: 1; min-width: 500px; flex-direction: row;">
+                        <engine:VisualElement name="InputFieldHolder" style="flex-grow: 1;">
+                            <engine:TextField placeholder-text="level data" name="InputField" style="flex-grow: 1; white-space: normal; position: absolute; left: 0; right: 0;" />
+                        </engine:VisualElement>
                         <engine:VisualElement name="SaveLoad" style="flex-grow: 0; flex-direction: row; justify-content: center;">
-                            <engine:Button text="Load" name="LoadDataButton" />
+                            <engine:Button text="Load" name="LoadLevelDataButton" />
                         </engine:VisualElement>
                     </engine:VisualElement>
-                    <engine:Label text="Unable to parse data" name="LevelNameError" class="field-error" style="-unity-text-align: upper-left; padding-left: 0; margin-left: 8px; margin-top: -2px;" />
+                    <engine:Label text="Unable to parse data" name="ErrorLabel" class="field-error" style="-unity-text-align: upper-left; padding-left: 0; margin-left: 8px; margin-top: -2px;" />
                 </engine:VisualElement>
                 <engine:Button text="Save" name="SaveButton" class="field" />
                 <engine:VisualElement name="PublishMenu" style="flex-grow: 1;">

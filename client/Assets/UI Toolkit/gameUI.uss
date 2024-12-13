@@ -1,8 +1,10 @@
 #ScoreHolder Label {
     font-size: 52px;
-    -unity-text-align: middle-left;
+    -unity-text-align: middle-right;
     text-shadow: 3px 3px 6px rgb(51, 51, 51);
-    margin-left: 40px;
+    align-self: stretch;
+    margin-right: 20px;
+    margin-left: 20px;
 }
 
 .play-mode .hide-play {
@@ -38,6 +40,10 @@
     -unity-background-scale-mode: scale-to-fit;
     width: 100%;
     flex-grow: 1;
+}
+
+.setup-mode .hide-setup {
+    display: none;
 }
 
 .item .display-label {

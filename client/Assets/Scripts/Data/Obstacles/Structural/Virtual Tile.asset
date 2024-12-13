@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42cdfe3ef6484e841a8a3a850a3c535c, type: 3}
+  m_Name: Virtual Tile
+  m_EditorClassIdentifier: 
+  obstaclePrefab: {fileID: 8944477754094848889, guid: d18cd2302c4605e48a9f07f445ad130e, type: 3}
+  obstacleName: Virtual Tile
+  obstacleSprite: {fileID: 21300000, guid: 3078f7be40607c043972be63dfc8005f, type: 3}

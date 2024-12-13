@@ -3,6 +3,14 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using static UnityEngine.EventSystems.EventTrigger;
 
+public enum CardinalDirection
+{
+    North,
+    East,
+    South,
+    West
+}
+
 public static class MathLib
 {
     public static int Clamp01(int n)
@@ -228,11 +236,46 @@ public static class MathLib
         return factor * multiplicand;
     }
 
-    internal static Quaternion MatchOrientation(Quaternion rotation, Quaternion orientationReference)
+    public static Quaternion MatchOrientation(Quaternion rotation, Quaternion orientationReference)
     {
         bool rightSidePointsAway = MathLib.RightSidePointsAway(orientationReference);
         Vector3 up = rotation * Vector3.up;
         Vector3 forward = GetForwardFromUp(up, rightSidePointsAway);
         return Quaternion.LookRotation(forward, up);
+    }
+
+    public static Vector2 VectorFromCardinalDirection(CardinalDirection direction)
+    {
+        return direction switch
+        {
+            CardinalDirection.North => Vector2.up,
+            CardinalDirection.South => Vector2.down,
+            CardinalDirection.East => Vector2.right,
+            CardinalDirection.West => Vector2.left,
+            _ => Vector2.zero
+        };
+    }
+    public static CardinalDirection CardinalDirectionFromVector(Vector2 direction)
+    {
+        float absX = Mathf.Abs(direction.x);
+        float absY = Mathf.Abs(direction.y);
+        if (absX < absY)
+        {
+            return direction.y < 0 ? CardinalDirection.South : CardinalDirection.North;
+        }
+        else
+        {
+            return direction.x < 0 ? CardinalDirection.West : CardinalDirection.East;
+        }
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static CardinalDirection CardinalDirectionFromObstacleRotation(Quaternion rotation)
+    {
+        return CardinalDirectionFromVector(rotation * Vector2.up);
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Quaternion ObstacleRotationFromCardinalDirection(CardinalDirection upDirection)
+    {
+        return Quaternion.LookRotation(Vector3.forward, VectorFromCardinalDirection(upDirection));
     }
 }

@@ -195,14 +195,13 @@ public class DeleteBrush : Brush
     public override void HandleSelect(ObstacleData selected)
     {
         bool present = ui.CompendiumView.ToggleHighlight(selected);
-        string obstacleName = selected.GetPrefabObstacleName();
         if (present)
         {
-            obstacleNameFilter.Add(obstacleName);
+            obstacleNameFilter.Add(selected.name);
         }
         else
         {
-            obstacleNameFilter.Remove(obstacleName);
+            obstacleNameFilter.Remove(selected.name);
         }
     }
 }

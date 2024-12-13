@@ -350,6 +350,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: RampOuter (1x1) (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 7620208285672748133, guid: 7cc22c385efbb584b9dd66c4b158cc07, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7620208285672748133, guid: 7cc22c385efbb584b9dd66c4b158cc07, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7620208285672748133, guid: 7cc22c385efbb584b9dd66c4b158cc07, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.0000004768371
+      objectReference: {fileID: 0}
     - target: {fileID: 9065762463679284736, guid: 7cc22c385efbb584b9dd66c4b158cc07, type: 3}
       propertyPath: grid
       value: 
@@ -686,6 +698,7 @@ GameObject:
   m_Component:
   - component: {fileID: 398188067}
   - component: {fileID: 398188068}
+  - component: {fileID: 398188069}
   m_Layer: 0
   m_Name: World
   m_TagString: Untagged
@@ -727,6 +740,35 @@ MonoBehaviour:
   ui: {fileID: 1989235494}
   activeWorld: {fileID: 391580079}
   gameMode: 0
+--- !u!114 &398188069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 398188066}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47941fe8850e20f42922d74016a773f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  obstacleDataIndex:
+  - {fileID: 11400000, guid: 847feff1ec0f93841ad84bee4de774e0, type: 2}
+  - {fileID: 11400000, guid: b7020cae917ac7b4da36b0de49ca71f0, type: 2}
+  - {fileID: 11400000, guid: b5625ddf23aac0a42badcb1073b03315, type: 2}
+  - {fileID: 11400000, guid: 81918221f11c6594199238bc83c2275a, type: 2}
+  - {fileID: 11400000, guid: 38b1a6eb4c8b486499b1a1aac288b1d9, type: 2}
+  - {fileID: 11400000, guid: a9325a663424c1c40aa4c3baef1c5a3c, type: 2}
+  - {fileID: 11400000, guid: 261e63d8e36cb6246b6b86be854abb4f, type: 2}
+  - {fileID: 11400000, guid: 2a8729399a4683847b17a5a862547fbc, type: 2}
+  - {fileID: 11400000, guid: 12e1d0dfd8194e84c9a9a581e3695c6a, type: 2}
+  - {fileID: 11400000, guid: 85454b1fc8336824e9e541495c88ed77, type: 2}
+  critterColorIndex:
+  - {fileID: 11400000, guid: bd9f9181ceb7ea74ab58de9b5ee31612, type: 2}
+  - {fileID: 11400000, guid: 347fb5f8166d9b3438b3c62123c6ca4e, type: 2}
+  - {fileID: 11400000, guid: a591a28924678a74f813abd23d54c976, type: 2}
+  - {fileID: 11400000, guid: 507949b79e7160148be7c67d9f4bd453, type: 2}
+  - {fileID: 11400000, guid: 1907d59b4aead3948b8e40b7b94151bc, type: 2}
 --- !u!4 &403542725 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6748287646511428472, guid: 9a6678beb282c7e4699cbd1e8295ed1d, type: 3}
@@ -1273,6 +1315,10 @@ PrefabInstance:
     - target: {fileID: 5539966021108745617, guid: 7cc22c385efbb584b9dd66c4b158cc07, type: 3}
       propertyPath: m_Name
       value: RampOuter (1x1) (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7620208285672748133, guid: 7cc22c385efbb584b9dd66c4b158cc07, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9065762463679284736, guid: 7cc22c385efbb584b9dd66c4b158cc07, type: 3}
       propertyPath: grid
@@ -2429,7 +2475,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1989235492}
   - component: {fileID: 1989235491}
-  - component: {fileID: 1989235493}
   - component: {fileID: 1989235494}
   - component: {fileID: 1989235495}
   m_Layer: 5
@@ -2473,33 +2518,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1989235493
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1989235490}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5da1e05b0ac93bf4f84961ad0927b65a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  OnStepClicked:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 391580079}
-        m_TargetAssemblyTypeName: GridWorld, Assembly-CSharp
-        m_MethodName: InvokeTimeStep
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
 --- !u!114 &1989235494
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2513,7 +2531,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _document: {fileID: 1989235491}
-  compendium: {fileID: 0}
+  compendium: {fileID: 11400000, guid: 6504f452816d7494f8a9215e109f2d97, type: 2}
 --- !u!114 &1989235495
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2925,22 +2943,6 @@ PrefabInstance:
     - target: {fileID: 1755580420201584895, guid: 106e483804781614eaca91a97d125c54, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1755580420201584895, guid: 106e483804781614eaca91a97d125c54, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1755580420201584895, guid: 106e483804781614eaca91a97d125c54, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1755580420201584895, guid: 106e483804781614eaca91a97d125c54, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1755580420201584895, guid: 106e483804781614eaca91a97d125c54, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1755580420201584895, guid: 106e483804781614eaca91a97d125c54, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -3544,6 +3546,10 @@ PrefabInstance:
     - target: {fileID: 3718511187821914619, guid: abc9a2f25c0462d44b7367528786e32a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5700987325286119993, guid: abc9a2f25c0462d44b7367528786e32a, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.00000077486027
       objectReference: {fileID: 0}
     - target: {fileID: 6922384090167140299, guid: abc9a2f25c0462d44b7367528786e32a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y

@@ -127,6 +127,14 @@ public class UIManager : BaseUIManager
 
         messageDisplay = Q("MessageDisplay");
         messageDisplayLabel = messageDisplay.Q<Label>();
+
+        Window levelOptionsWindow = new Window(Q("LevelOptions")).Hide();
+        Button levelOptionsButton = Q<Button>("LevelOptionsButton");
+        Button levelOptionsBackButton = levelOptionsWindow.container.Q<Button>("BackButton");
+        RegisterWindow(levelOptionsWindow)
+            .AddWindowButton(levelOptionsButton, WindowButtonBehaviour.Toggle)
+            .AddWindowButton(levelOptionsBackButton, WindowButtonBehaviour.Close);
+        levelOptionsWindow.OnOpen += RefreshWorldData;
     }
 
     private void Start()
@@ -166,11 +174,19 @@ public class UIManager : BaseUIManager
         return label;
     }
 
-    public void OpenWindow(string containerId)
-    {
-        foreach (var window in windows)
+    public void RefreshWorldData() {
+        var dataField = Q("DataField", "field");
+        Label errorLabel = dataField.Q<Label>("ErrorLabel");
+        TextField textField = dataField.Q<TextField>("InputField");
+        try
         {
-            window.SetVisible(window.containerId == containerId);
+            textField.value = SaveManager.Instance.GetWorldDataString(WorldManager.Instance.World);
+            errorLabel.text = "";
+        }
+        catch (Exception ex)
+        {
+            errorLabel.text = ex.Message;
+            Debug.LogError(ex);
         }
     }
 
