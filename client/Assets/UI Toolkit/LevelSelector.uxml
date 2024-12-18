@@ -1,0 +1,16 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd">
+    <Style src="project://database/Assets/UI%20Toolkit/global.uss?fileID=7433441132597879392&amp;guid=7ba1cb99606c0df4f8a29b3c4d954bad&amp;type=3#global" />
+    <Style src="project://database/Assets/UI%20Toolkit/levelSelector.uss?fileID=7433441132597879392&amp;guid=b513a09043da8aa48861eab429786b96&amp;type=3#levelSelector" />
+    <engine:VisualElement name="root" style="flex-grow: 1; flex-direction: column;">
+        <engine:VisualElement name="LevelBrowser" style="flex-grow: 1;" />
+        <engine:VisualElement name="VisualElement" style="flex-grow: 1; position: absolute; top: 0; left: 0; bottom: 0; right: 0;">
+            <engine:VisualElement name="GameButtons" class="spaced-col" style="flex-grow: 1; position: absolute; right: 10%; bottom: 15%; width: 500px;">
+                <engine:Button text="Play" name="PlayButton" />
+                <engine:Button text="Browse Levels" name="BrowseButton" />
+                <engine:Button text="Level Editor" name="EditorButton" />
+                <engine:Button text="Exit" name="Exit" style="margin-top: 60px;" />
+            </engine:VisualElement>
+            <engine:Button text="Log Out" name="LogOutButton" style="top: 25px; left: 25px; width: 300px;" />
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>

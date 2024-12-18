@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using MessagePack;
 using Newtonsoft.Json;
@@ -18,7 +19,7 @@ public class WorldSaveDataConverter : JsonConverter
     {
         if (value is WorldSaveData worldData)
         {
-            writer.WriteValue(worldData.Serialize(SaveManager.Instance.SerializationOptions));
+            writer.WriteValue(worldData.Serialize(WorldManager.SerializationOptions));
         }
         else
         {

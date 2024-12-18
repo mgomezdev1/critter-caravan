@@ -70,6 +70,29 @@ Button:active {
     padding-left: 0;
 }
 
+.field-row {
+    flex-direction: row;
+}
+
+.field-input {
+    flex-grow: 1;
+}
+
+.invalid .field-input {
+    border-left-color: rgb(177, 0, 0);
+    border-right-color: rgb(177, 0, 0);
+    border-top-color: rgb(177, 0, 0);
+    border-bottom-color: rgb(177, 0, 0);
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
 .disabled {
     display: none;
 }
@@ -81,4 +104,45 @@ Button:active {
 .back-button {
     align-self: flex-start;
     margin-bottom: 20px;
+}
+
+.panel {
+    padding-top: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    background-color: rgb(135, 135, 135);
+    background-image: url("project://database/Assets/TextMesh%20Pro/Examples%20&%20Extras/Textures/Floor%20Cement.jpg?fileID=2800000&guid=283f897e4925411ebbaa758b4cb13fc2&type=3#Floor Cement");
+}
+
+.abs-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+}
+
+.standalone-error {
+    align-self: center;
+    border-left-color: rgb(41, 0, 0);
+    border-right-color: rgb(41, 0, 0);
+    border-top-color: rgb(41, 0, 0);
+    border-bottom-color: rgb(41, 0, 0);
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    border-bottom-left-radius: 20px;
+    background-color: rgba(255, 0, 0, 0.18);
+    -unity-text-align: upper-center;
+    white-space: normal;
+    padding-right: 10px;
+    padding-left: 10px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+    margin-left: 16px;
+    margin-right: 16px;
 }

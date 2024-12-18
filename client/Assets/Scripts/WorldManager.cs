@@ -18,32 +18,21 @@ public enum GameMode
     Play
 }
 
-public class WorldManager : MonoBehaviour
+public class WorldManager : SingletonBehaviour<WorldManager>
 {
-    private static WorldManager instance;
-    public static WorldManager Instance
-    {
-        get { 
-            if (instance == null)
-            {
-                instance = FindAnyObjectByType<WorldManager>();
-            }
-            return instance;
-        }
-    }
 
     [SerializeField] private CritterColor[] colors;
     [SerializeField] private UIManager ui;
     [SerializeField] private GridWorld activeWorld;
-    public UIManager UI => ui;
-    public GridWorld World => activeWorld;
+    public static UIManager UI => Instance.ui;
+    public static GridWorld World => Instance.activeWorld;
 
     [SerializeField] private GameMode gameMode;
-    public GameMode GameMode => gameMode;
+    public static GameMode GameMode => Instance.gameMode;
 
-    void Awake()
+    protected override void Awake()
     {
-        instance = this;
+        base.Awake();
     }
 
     private void Start()
@@ -52,7 +41,7 @@ public class WorldManager : MonoBehaviour
     }
 
     public const float WORLD_CHECK_COOLDOWN = 0.25f;
-    private IEnumerator CheckWorldStateCoroutine()
+    private static IEnumerator CheckWorldStateCoroutine()
     {
         while (true)
         {
@@ -74,33 +63,33 @@ public class WorldManager : MonoBehaviour
     }
 
     private Obstacle? heldObstacle = null;
-    public Obstacle? HeldObstacle => heldObstacle;
+    public static Obstacle? HeldObstacle => Instance.heldObstacle;
 
-    public void DropHeldObstacle()
+    public static void DropHeldObstacle()
     {
-        if (heldObstacle != null)
+        if (HeldObstacle != null)
         {
-            if (!heldObstacle.EndDragging(out IObstaclePlacementResult placementResult))
+            if (!HeldObstacle.EndDragging(out IObstaclePlacementResult placementResult))
             {
                 HandlePlacementError(placementResult);
             }
-            heldObstacle = null;
+            Instance.heldObstacle = null;
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Obstacle? GetObstacleAtPointer()
+    public static Obstacle? GetObstacleAtPointer()
     {
         return GetObstacleAtRay(GetCameraRay());
     }
 
-    public Obstacle? TryGrabObstacleAtPointer()
+    public static Obstacle? TryGrabObstacleAtPointer()
     {
         Obstacle? candidate = GetObstacleAtPointer();
         var success = TryGrabOstacle(candidate);
         return success ? candidate : null;
     }
-    public bool TryGrabOstacle(Obstacle? newDragTarget)
+    public static bool TryGrabOstacle(Obstacle? newDragTarget)
     {
         ChangeSelection(newDragTarget);
 
@@ -108,45 +97,45 @@ public class WorldManager : MonoBehaviour
         if (newDragTarget != null && newDragTarget.CanBeMoved())
         {
             //Debug.Log($"Candidate can be dragged!");
-            heldObstacle = newDragTarget;
-            heldObstacle.BeginDragging();
+            Instance.heldObstacle = newDragTarget;
+            newDragTarget.BeginDragging();
             return true;
         }
         else
         {
-            heldObstacle = null;
+            Instance.heldObstacle = null;
             return newDragTarget == null;
         }
     }
     private Obstacle? selectedObstacle;
-    public Obstacle? SelectedObstacle => selectedObstacle;
+    public static Obstacle? SelectedObstacle => Instance.selectedObstacle;
     private GameObject? activeSelectHighlight;
-    public void ChangeSelection(Obstacle? newSelectTarget)
+    public static void ChangeSelection(Obstacle? newSelectTarget)
     {
-        if (newSelectTarget == selectedObstacle) return;
+        if (newSelectTarget == SelectedObstacle) return;
 
-        if (activeSelectHighlight != null)
+        if (Instance.activeSelectHighlight != null)
         {
-            World.EndHighlight(activeSelectHighlight);
-            activeSelectHighlight = null;
+            World.EndHighlight(Instance.activeSelectHighlight);
+            Instance.activeSelectHighlight = null;
         }
-        selectedObstacle = newSelectTarget;
-        if (selectedObstacle != null)
+        Instance.selectedObstacle = newSelectTarget;
+        if (SelectedObstacle != null)
         {
-            activeSelectHighlight = World.HighlightTransform(selectedObstacle.MoveTarget);
+            Instance.activeSelectHighlight = World.HighlightTransform(SelectedObstacle.MoveTarget);
         }
     }
 
-    public void RotateSelection(int delta = 1)
+    public static void RotateSelection(int delta = 1)
     {
-        if (selectedObstacle == null) return;
-        if (!selectedObstacle.CanBeMoved()) return;
-        selectedObstacle.TryRotate(delta);
+        if (SelectedObstacle == null) return;
+        if (!SelectedObstacle.CanBeMoved()) return;
+        SelectedObstacle.TryRotate(delta);
     }
 
-    public void DeleteObstacle(Obstacle target)
+    public static void DeleteObstacle(Obstacle target)
     {
-        if (target == selectedObstacle)
+        if (target == SelectedObstacle)
         {
             ChangeSelection(null);
         }
@@ -159,7 +148,7 @@ public class WorldManager : MonoBehaviour
 
 
     private const float INCOMPATIBILITY_DISPLAY_DURATION = 3.0f;
-    public void HandlePlacementError(IObstaclePlacementResult placementResult, bool includeMovedObstacle = false, bool announceErrorReason = true)
+    public static void HandlePlacementError(IObstaclePlacementResult placementResult, bool includeMovedObstacle = false, bool announceErrorReason = true)
     {
         if (announceErrorReason) DisplayMessage(placementResult.Reason);
         foreach (var obstacle in placementResult.GetProblemObstacles())
@@ -169,37 +158,37 @@ public class WorldManager : MonoBehaviour
         }
     }
 
-    public void DisplayMessage(string message, float duration = INCOMPATIBILITY_DISPLAY_DURATION)
+    public static void DisplayMessage(string message, float duration = INCOMPATIBILITY_DISPLAY_DURATION)
     {
         Debug.Log(message);
-        ui.DisplayMessage(message, duration);
+        UI.DisplayMessage(message, duration);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Ray GetCameraRay()
+    public static Ray GetCameraRay()
     {
-        return activeWorld.GridCamera.ScreenPointToRay(Input.mousePosition);
+        return World.GridCamera.ScreenPointToRay(Input.mousePosition);
     }
 
-    public Obstacle? GetObstacleAtRay(Ray ray)
+    public static Obstacle? GetObstacleAtRay(Ray ray)
     {
-        if (!activeWorld.Raycast(ray, out Vector3 point))
+        if (!World.Raycast(ray, out Vector3 point))
             return null;
 
-        Vector2Int cell = activeWorld.GetCell(point);
-        return activeWorld.GetObstacle(cell);
+        Vector2Int cell = World.GetCell(point);
+        return World.GetObstacle(cell);
     }
 
-    public bool SetGameMode(GameMode gameMode)
+    public static bool SetGameMode(GameMode gameMode)
     {
-        var obstacles = activeWorld.GetAllObstacles();
+        var obstacles = World.GetAllObstacles();
         foreach (var obstacle in obstacles)
         {
             if (obstacle.IsDragging) return false;
         }
 
         // If leaving Edit Mode, perform some world checks
-        if (this.gameMode == GameMode.LevelEdit && GameMode != GameMode.LevelEdit)
+        if (GameMode == GameMode.LevelEdit && GameMode != GameMode.LevelEdit)
         {
             var worldValidResult = World.CheckValidObstacles(null);
             if (!worldValidResult.Success)
@@ -214,19 +203,19 @@ public class WorldManager : MonoBehaviour
             ResetScenario();
         }
 
-        this.gameMode = gameMode;
+        Instance.gameMode = gameMode;
         if (gameMode == GameMode.Setup)
         {
-            foreach (var obstacle in activeWorld.GetDynamicObstacles())
+            foreach (var obstacle in World.GetDynamicObstacles())
             {
-                activeWorld.HighlightCell(obstacle.Cell, 1);
+                World.HighlightCell(obstacle.Cell, 1);
             }
         } 
         else if (gameMode == GameMode.Play) 
         {
-            foreach (var obstacle in activeWorld.GetDynamicObstacles().Where(o => o.IsLive))
+            foreach (var obstacle in World.GetDynamicObstacles().Where(o => o.IsLive))
             {
-                activeWorld.HighlightCell(obstacle.Cell, 1);
+                World.HighlightCell(obstacle.Cell, 1);
             }
         }
 
@@ -252,29 +241,29 @@ public class WorldManager : MonoBehaviour
         return null;
     }
 
-    public void ResetScenario()
+    public static void ResetScenario()
     {
         ResetScores();
-        activeWorld.HandleReset();
+        World.HandleReset();
     }
 
-    public void InitScenario()
+    public static void InitScenario()
     {
-        activeWorld.HandleInit();
+        World.HandleInit();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Obstacle SpawnObstacle(ObstacleData template, Vector2Int cell, Quaternion rotation, bool markVolatile = false)
+    public static Obstacle SpawnObstacle(ObstacleData template, Vector2Int cell, Quaternion rotation, bool markVolatile = false)
     {
-        var position = activeWorld.GetCellCenter(cell);
+        var position = World.GetCellCenter(cell);
         return SpawnObstacle(template, position, rotation, markVolatile);
     }
-    public Obstacle SpawnObstacle(ObstacleData template, Vector3 position, Quaternion rotation, bool markVolatile = false)
+    public static Obstacle SpawnObstacle(ObstacleData template, Vector3 position, Quaternion rotation, bool markVolatile = false)
     {
-        GameObject spawned = Instantiate(template.obstaclePrefab, position, rotation, activeWorld.transform);
+        GameObject spawned = Instantiate(template.obstaclePrefab, position, rotation, World.transform);
         Obstacle result = spawned.GetComponent<Obstacle>();
         if (markVolatile) result.MarkVolatile();
-        result.Initialize(activeWorld);
+        result.Initialize(World);
 
         return result;
     }
@@ -283,13 +272,14 @@ public class WorldManager : MonoBehaviour
      *     SCORE MANAGER      *
      * ********************** */
     private readonly List<ColorScore> scores = new();
-    public void ResetScores()
+    public static void ResetScores()
     {
-        scores.Clear();
+        Instance.scores.Clear();
     }
-    public ColorScore AddScore(ColorScore score)
+    public static ColorScore AddScore(ColorScore score)
     {
         // Debug.Log($"Registering score {score}");
+        var scores = Instance.scores;
         for (int i = 0; i < scores.Count; i++)
         {
             if (scores[i].color == score.color)
@@ -305,12 +295,12 @@ public class WorldManager : MonoBehaviour
 
         return score;
     }
-    public List<ColorScore> GetScores()
+    public static List<ColorScore> GetScores()
     {
-        return scores;
+        return Instance.scores;
     }
 
-    public Obstacle SpawnAndGrabObstacle(ObstacleData data, Vector3 position, Quaternion rotation)
+    public static Obstacle SpawnAndGrabObstacle(ObstacleData data, Vector3 position, Quaternion rotation)
     {
         DropHeldObstacle();
 
@@ -319,7 +309,7 @@ public class WorldManager : MonoBehaviour
         return newObstacle;
     }
 
-    public IObstaclePlacementResult TrySpawnAndPlaceObstacle(ObstacleData data, Vector3 position, Quaternion rotation)
+    public static IObstaclePlacementResult TrySpawnAndPlaceObstacle(ObstacleData data, Vector3 position, Quaternion rotation)
     {
         Vector2Int cell = World.GetCell(position);
         Obstacle prefabScript = data.obstaclePrefab.GetComponent<Obstacle>();
@@ -338,8 +328,73 @@ public class WorldManager : MonoBehaviour
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool RaycastCameraRay(out Vector3 hit)
+    public static bool RaycastCameraRay(out Vector3 hit)
     {
-        return activeWorld.Raycast(GetCameraRay(), out hit);
+        return World.Raycast(GetCameraRay(), out hit);
+    }
+
+    [Header("World Serialization")]
+    [SerializeField] private WorldSerializationOptions serializationOptions = new(2, CompressionType.Base64Gzip);
+    public static WorldSerializationOptions SerializationOptions => Instance.serializationOptions;
+
+    [SerializeField] private AssetIdProvider idProvider;
+
+    public static string GetWorldDataString(GridWorld world)
+    {
+        List<ObstacleSaveData> obstacles = new();
+        foreach (var obstacle in world.GetAllObstacles())
+        {
+            if (obstacle.Generated) continue;
+            obstacles.Add(GetObstacleData(obstacle));
+        }
+        WorldSaveData saveData = new(world.GridSize, obstacles);
+        string serialized = saveData.Serialize(SerializationOptions);
+        Debug.Log($"Serialized world data string: {saveData} -> {serialized}");
+
+        // test w/ deserialization
+        var deserialized = WorldSaveData.Deserialize(serialized, out _);
+        Debug.Log($"After deserialization -> {deserialized}");
+
+        return serialized;
+    }
+
+    public void LoadWorldData(GridWorld world, string data)
+    {
+        world.Clear();
+        WorldSaveData worldData = WorldSaveData.Deserialize(data, out _);
+        world.SetSize(worldData.worldSize);
+        foreach (var obstacle in worldData.obstacles)
+        {
+            LoadObstacleData(world, obstacle);
+        }
+    }
+
+    public static ObstacleSaveData GetObstacleData(Obstacle target)
+    {
+        if (target.Generated)
+        {
+            throw new InvalidOperationException("Attempted to get save data for a generated obstacle.");
+        }
+
+        return new ObstacleSaveData(
+            Instance.idProvider.GetObstacleId(target),
+            target.MoveMode,
+            target.World.GetIdFromCell(target.Cell),
+            MathLib.CardinalDirectionFromObstacleRotation(target.transform.rotation),
+            Instance.idProvider.GetId(target.Color)
+        );
+    }
+    public static Obstacle LoadObstacleData(GridWorld world, ObstacleSaveData saveData)
+    {
+        // we need to create a new obstacle
+        ObstacleData data = Instance.idProvider.GetObstacle(saveData.obstacleId);
+        Obstacle target = SpawnObstacle(data,
+            world.GetCellFromId(saveData.cellId),
+            MathLib.ObstacleRotationFromCardinalDirection(saveData.facingDirection)
+        );
+        target.MoveMode = saveData.moveType;
+        target.Color = Instance.idProvider.GetColor(saveData.colorId);
+        target.Initialize(world); // this also registers the target to the world
+        return target;
     }
 }

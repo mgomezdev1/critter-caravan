@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace Extensions
 {
-    public static class Collections
+    public static class CollectionsUtils
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Swap<T>(this IList<T> list, System.Index indexA, System.Index indexB)
@@ -30,6 +30,24 @@ namespace Extensions
                 else result[item] = 1;
             }
             return result;
+        }
+
+        public static IEnumerable<List<T>> InSetsOf<T>(this IEnumerable<T> data, int maxSetSize)
+        {
+            List<T> group = new();
+            foreach (var item in data)
+            {
+                group.Add(item);
+                if (group.Count > maxSetSize)
+                {
+                    yield return group;
+                    group = new();
+                }
+            }
+            if (group.Count > 0)
+            {
+                yield return group;
+            }
         }
     }
 }

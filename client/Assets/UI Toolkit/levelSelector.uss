@@ -1,0 +1,3 @@
+.spaced-col > * {
+    margin-top: 25px;
+}

@@ -70,7 +70,7 @@ public class GridWorld : MonoBehaviour
             OnEffectorsUpdated.Invoke();
         }
 
-        if (WorldManager.Instance.GameMode == GameMode.Play)
+        if (WorldManager.GameMode == GameMode.Play)
         {
             timeFragment += Time.deltaTime * TimeSpeed;
             if (timeFragment >= 1)
@@ -87,7 +87,7 @@ public class GridWorld : MonoBehaviour
                 var sideEffectResults = CheckValidObstacles(uncheckedObstacles[^1]);
                 if (!sideEffectResults.Success)
                 {
-                    WorldManager.Instance.HandlePlacementError(sideEffectResults);
+                    WorldManager.HandlePlacementError(sideEffectResults);
                     foreach (var obstacle in uncheckedObstacles) { obstacle.Delete(); }
                 }
                 uncheckedObstacles.Clear();

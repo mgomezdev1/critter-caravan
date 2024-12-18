@@ -86,6 +86,19 @@ public class BaseUIManager : MonoBehaviour
     protected readonly Stack<Window> openWindows = new();
     protected readonly List<Window> windows = new();
 
+    public T Q<T>(string? name = null, string? className = null) where T : VisualElement
+    {
+        return Root.Q<T>(name, className);
+    }
+    public VisualElement Q(string? name = null, string? className = null)
+    {
+        return Root.Q(name, className);
+    }
+    public IEnumerable<T> Query<T>(string? name = null, string? className = null) where T : VisualElement
+    {
+        return Root.Query<T>(name, className).ToList();
+    }
+
     public void CloseAllWindows()
     {
         while (openWindows.Count > 0)
@@ -103,7 +116,7 @@ public class BaseUIManager : MonoBehaviour
         if (openWindows.TryPop(out Window lastWindow))
             lastWindow.Hide();
     }
-    public void SetWindowShown(Window? window, bool shown)
+    public void SetWindowShownState(Window? window, bool shown)
     {
         if (window == null) return;
         if (window.IsVisible == shown) return;
@@ -125,7 +138,7 @@ public class BaseUIManager : MonoBehaviour
         }
         return null;
     }
-    public void SetShownWindow(Window? window)
+    public void SetActiveWindow(Window? window)
     {
         foreach (var otherWindow in windows)
         {
@@ -134,15 +147,15 @@ public class BaseUIManager : MonoBehaviour
         openWindows.Clear();
         if (window != null) { openWindows.Push(window); }
     }
-    public void SetShownWindow(string containerId)
+    public void SetActiveWindow(string containerId)
     {
         Window? window = GetWindowByContainerId(containerId);
-        SetShownWindow(window);
+        SetActiveWindow(window);
     }
     public void ToggleWindow(Window? window)
     {
         if (window == null) return;
-        SetWindowShown(window, !window.IsVisible);
+        SetWindowShownState(window, !window.IsVisible);
     }
     public void CloseWindow(Window? window)
     {
@@ -174,12 +187,17 @@ public class BaseUIManager : MonoBehaviour
     {
         button.clicked += behaviour switch
         {
-            WindowButtonBehaviour.Set => () => SetShownWindow(window),
+            WindowButtonBehaviour.Set => () => SetActiveWindow(window),
             WindowButtonBehaviour.Toggle => () => ToggleWindow(window),
             WindowButtonBehaviour.Open => () => OpenWindow(window),
             WindowButtonBehaviour.Close => () => CloseWindow(window),
             _ => throw new NotImplementedException($"The WindowButtonBehaviour {behaviour} is not implemented for window buttons."),
         };
         return new WindowContext(this, window);
+    }
+
+    public static string FillInFormatText(string text)
+    {
+        return text.Replace("%BASE_URL%", Networking.ServerAPI.BASE_URL);
     }
 }

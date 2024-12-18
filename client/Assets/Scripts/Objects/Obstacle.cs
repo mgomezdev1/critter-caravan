@@ -267,7 +267,7 @@ public class Obstacle : CellElement
     private Quaternion draggingStartRotation = Quaternion.identity;
     public bool CanBeMoved()
     {
-        return WorldManager.Instance.GameMode switch
+        return WorldManager.GameMode switch
         {
             GameMode.LevelEdit => true,
             GameMode.Setup => !IsFixed,
@@ -362,7 +362,7 @@ public class Obstacle : CellElement
         Vector2Int newCell = World.GetCell(transform.position + desiredOffset);
         dragging = false;
         desiredOffset = Vector3.zero;
-        bool checkSideEffects = WorldManager.Instance.GameMode != GameMode.LevelEdit &&
+        bool checkSideEffects = WorldManager.GameMode != GameMode.LevelEdit &&
             (draggingStartCell != newCell || draggingStartRotation != transform.rotation);
 
         result = CanBePlaced(newCell, desiredRotation, checkSideEffects);
@@ -465,7 +465,7 @@ public class Obstacle : CellElement
             var placementResult = CanBePlaced(Cell, candidateRotation, true);
             if (!placementResult.Success)
             {
-                WorldManager.Instance.HandlePlacementError(placementResult, true);
+                WorldManager.HandlePlacementError(placementResult, true);
                 // TODO: Consider adding a "wiggle" animation
                 return false;
             }

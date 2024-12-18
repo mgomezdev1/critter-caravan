@@ -88,8 +88,9 @@ public class CellEntity : CellElement, IResettable
         }
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
+        base.OnDestroy();
         World.DeregisterEntity(this);
     }
 
@@ -261,7 +262,7 @@ public class CellEntity : CellElement, IResettable
     {
         if (goalReached) { return; }
         goalReached = true;
-        WorldManager.Instance.AddScore(new ColorScore(1, 0, Color));
+        WorldManager.AddScore(new ColorScore(1, 0, Color));
         AnimateCampReached();
     }
 

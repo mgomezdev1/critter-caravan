@@ -139,25 +139,12 @@ public class UIManager : BaseUIManager
 
     private void Start()
     {
-        HandleMode(WorldManager.Instance.GameMode);
-    }
-
-    public T Q<T>(string? name = null, string? className = null) where T : VisualElement
-    {
-        return Root.Q<T>(name, className);
-    }
-    public VisualElement Q(string? name = null, string? className = null)
-    {
-        return Root.Q(name, className);
-    }
-    public IEnumerable<T> Query<T>(string? name = null, string? className = null) where T : VisualElement
-    {
-        return Root.Query<T>(name, className).ToList();
+        HandleMode(WorldManager.GameMode);
     }
 
     public void SelectBrush(Brush brush)
     {
-        if (activeBrush != null) activeBrush.Deactivate();
+        activeBrush?.Deactivate();
         activeBrush = brush;
         activeBrush.Activate();
         foreach (var brushButton in brushButtons)
@@ -180,7 +167,7 @@ public class UIManager : BaseUIManager
         TextField textField = dataField.Q<TextField>("InputField");
         try
         {
-            textField.value = SaveManager.Instance.GetWorldDataString(WorldManager.Instance.World);
+            textField.value = WorldManager.GetWorldDataString(WorldManager.World);
             errorLabel.text = "";
         }
         catch (Exception ex)
@@ -209,11 +196,11 @@ public class UIManager : BaseUIManager
     
     public void HandleMode(GameMode gameMode)
     {
-        if (!WorldManager.Instance.SetGameMode(gameMode)) return;
+        if (!WorldManager.SetGameMode(gameMode)) return;
 
         if (gameMode == GameMode.Play)
         {
-            EnsureSpeedSelected(WorldManager.Instance.World.TimeSpeed);
+            EnsureSpeedSelected(WorldManager.World.TimeSpeed);
         }
 
         Root.EnableInClassList("play-mode", gameMode == GameMode.Play);
@@ -291,7 +278,7 @@ public class UIManager : BaseUIManager
         {
             button.EnableInClassList(ACTIVE_BUTTON_CLASS, button == clickedButton);
         }
-        WorldManager.Instance.World.TimeSpeed = speed;
+        WorldManager.World.TimeSpeed = speed;
     }
     private void EnsureSpeedSelected(float speed)
     {
@@ -331,9 +318,9 @@ public class UIManager : BaseUIManager
     }
     private void HandleRotate(int delta)
     {
-        if (WorldManager.Instance.SelectedObstacle != null)
+        if (WorldManager.SelectedObstacle != null)
         {
-            WorldManager.Instance.RotateSelection(delta);
+            WorldManager.RotateSelection(delta);
         }
         else
         {
@@ -347,11 +334,11 @@ public class UIManager : BaseUIManager
 
     public void HandleDelete(CallbackContext ctx)
     {
-        Obstacle? target = WorldManager.Instance.SelectedObstacle;
+        Obstacle? target = WorldManager.SelectedObstacle;
         if (ctx.performed && target != null)
         {
-            if (WorldManager.Instance.GameMode != GameMode.LevelEdit) return;
-            WorldManager.Instance.DeleteObstacle(target);
+            if (WorldManager.GameMode != GameMode.LevelEdit) return;
+            WorldManager.DeleteObstacle(target);
         }
     }
 

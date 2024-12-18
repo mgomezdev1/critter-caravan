@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.UI;
 
+#nullable enable
 public class LineEmitter : CellBehaviour<Obstacle>, IMovable
 {
     [SerializeField] Vector2Int propagationVector = Vector2Int.up;
@@ -109,7 +110,9 @@ public class LineEmitter : CellBehaviour<Obstacle>, IMovable
         int tailPos = spawnedObjects.Count - 1;
         while (spawnedObjects.Count < cells.Count)
         {
+            #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
             spawnedObjects.Add(null);
+            #pragma warning restore CS8625
         }
         // Ensure that the old tail, if it exists, is in the last position of SpawnedObjects
         if (tailPos >= 1) // -1 means nothing exists, 0 is always the head.
@@ -221,7 +224,7 @@ public class LineEmitter : CellBehaviour<Obstacle>, IMovable
             if (!World.IsCellValid(current)) { break; }
             yield return current;
             Vector2Int previous = current;
-            current += World.LimitMotion(correctedPropagationVector, current, Vector2.up, out Surface impactedSurface, skipWallFlags, relevantEffectorFlags);
+            current += World.LimitMotion(correctedPropagationVector, current, Vector2.up, out Surface? impactedSurface, skipWallFlags, relevantEffectorFlags);
             if (impactedSurface != null || current == previous) { break; }
         }
     }

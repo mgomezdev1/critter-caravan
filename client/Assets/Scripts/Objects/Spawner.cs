@@ -42,7 +42,7 @@ public class Spawner : CellBehaviour<CellElement>, IResettable
         int totalSpawnCount = TotalSpawnCount;
         if (isCritterSpawner)
         {
-            WorldManager.Instance.AddScore(new(0, totalSpawnCount, CellComponent.Color));
+            WorldManager.AddScore(new(0, totalSpawnCount, CellComponent.Color));
         }
         remainingSpawnIterations = spawnIterations;
         remainingSpawnDelays = new();

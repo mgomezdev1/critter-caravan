@@ -33,33 +33,33 @@ public class DragBrush : Brush
 
     public override void Deactivate()
     {
-        WorldManager.Instance.DropHeldObstacle();
+        WorldManager.DropHeldObstacle();
     }
 
     public override void HandleClick()
     {
-        WorldManager.Instance.TryGrabObstacleAtPointer();
+        WorldManager.TryGrabObstacleAtPointer();
     }
 
     public override void HandleDrag()
     {
-        Obstacle? held = WorldManager.Instance.HeldObstacle;
+        Obstacle? held = WorldManager.HeldObstacle;
         if (held != null)
         {
-            held.DragToRay(WorldManager.Instance.GetCameraRay(), true);
+            held.DragToRay(WorldManager.GetCameraRay(), true);
         }
     }
 
     public override void HandleDragEnd()
     {
-        WorldManager.Instance.DropHeldObstacle();
+        WorldManager.DropHeldObstacle();
     }
 
     public override void HandleSelect(ObstacleData selected)
     {
         if (selected == null) { return; }
-        WorldManager.Instance.RaycastCameraRay(out Vector3 position);
-        WorldManager.Instance.SpawnAndGrabObstacle(selected, position, ui.ObstacleSpawnRotation);
+        WorldManager.RaycastCameraRay(out Vector3 position);
+        WorldManager.SpawnAndGrabObstacle(selected, position, ui.ObstacleSpawnRotation);
         ui.PretendDragStartedInWorldSpace();
     }
 }
@@ -103,20 +103,20 @@ public class PlaceBrush : Brush
         if (obstacleData == null) {
             return;
         }
-        if (!WorldManager.Instance.RaycastCameraRay(out Vector3 castPos)) { return; }
-        var cell = WorldManager.Instance.World.GetCell(castPos);
+        if (!WorldManager.RaycastCameraRay(out Vector3 castPos)) { return; }
+        var cell = WorldManager.World.GetCell(castPos);
         if (!CheckForCooldown(cell)) return;
-        var position = WorldManager.Instance.World.GetCellCenter(cell);
+        var position = WorldManager.World.GetCellCenter(cell);
 
-        var placementResult = WorldManager.Instance.TrySpawnAndPlaceObstacle(obstacleData, position, ui.ObstacleSpawnRotation);
+        var placementResult = WorldManager.TrySpawnAndPlaceObstacle(obstacleData, position, ui.ObstacleSpawnRotation);
 
         if (placementResult.Success)
         {
-            WorldManager.Instance.World.AnimateAppearance(placementResult.Obstacle!.gameObject, 0.5f);
+            WorldManager.World.AnimateAppearance(placementResult.Obstacle!.gameObject, 0.5f);
         }
         else if(highlightOnError)
         {
-            WorldManager.Instance.HandlePlacementError(placementResult, false, false);
+            WorldManager.HandlePlacementError(placementResult, false, false);
         }
     }
 
@@ -178,7 +178,7 @@ public class DeleteBrush : Brush
 
     private void TryDeleteAtPointer()
     {
-        Obstacle? obstacle = WorldManager.Instance.GetObstacleAtPointer();
+        Obstacle? obstacle = WorldManager.GetObstacleAtPointer();
         if (obstacle == null) return;
 
         if (obstacleNameFilter.Count == 0 || obstacleNameFilter.Contains(obstacle.ObstacleName))

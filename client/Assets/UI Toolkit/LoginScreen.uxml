@@ -1,0 +1,17 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/global.uss?fileID=7433441132597879392&amp;guid=7ba1cb99606c0df4f8a29b3c4d954bad&amp;type=3#global" />
+    <engine:VisualElement name="root" style="flex-grow: 1;">
+        <engine:VisualElement name="VisualElement" class="abs-center panel" style="flex-grow: 1; width: 560px; max-width: 80%; font-size: 20px;">
+            <StringField name="UsernameField" label-text="Username" />
+            <StringField name="PasswordField" label-text="Password" hide-input="true" />
+            <engine:Label text="This is an example of an extremely long error label that could ostensibly be shown in this position with a bunch of extra json-formatted data {&quot;error&quot;: &quot;this is an example error that was sent from the server.&quot;}" name="GlobalErrorLabel" class="standalone-error" />
+            <engine:Label text="&lt;style=&quot;link&quot;&gt;&lt;a href=&quot;%BASE_URL%forgot-password&quot;&gt;Forgot your password?&lt;/a&gt;&lt;/style&gt;" name="ForgotPassword" style="-unity-text-align: upper-center;" />
+            <engine:Button text="Log In" name="LoginButton" style="align-self: center;" />
+            <engine:Label text="No account? &lt;style=&quot;link&quot;&gt;&lt;a href=&quot;%BASE_URL%register&quot;&gt;Sign up here&lt;/a&gt;&lt;/style&gt;!" name="CreateAccount" style="-unity-text-align: upper-center;" />
+            <engine:VisualElement name="GuestSection" style="flex-grow: 1; margin-top: 16px;">
+                <engine:Label text="If you continue as a guest, your progress will be stored locally. You can later link a guest account to a full account. &lt;br&gt;Guests cannot upload maps and progress won&apos;t be synced across devices." style="white-space: normal; -unity-text-align: upper-center;" />
+                <engine:Button text="Continue as Guest" name="GuestButton" style="align-self: center;" />
+            </engine:VisualElement>
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>
