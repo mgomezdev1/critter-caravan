@@ -15,6 +15,8 @@ public class LevelSelectUIManager : BaseUIManager
 
     private void Awake()
     {
+        _document = GetComponent<UIDocument>();
+
         Button logOutButton = Q<Button>("LogOutButton");
         logOutButton.clicked += HandleLogOut;
 
@@ -70,6 +72,5 @@ public class LevelSelectUIManager : BaseUIManager
     private void HandleOpenLevelEditor()
     {
         SetActiveWindow(levelBrowserWindow);
-
     }
 }

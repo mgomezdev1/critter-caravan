@@ -1,3 +1,21 @@
 .spaced-col > * {
     margin-top: 25px;
 }
+
+.float-topleft {
+    top: 25px;
+    left: 25px;
+    align-self: flex-start;
+}
+
+.local .hide-local {
+    display: none;
+}
+
+.browse .hide-browse {
+    display: none;
+}
+
+.editor .hide-editor {
+    display: none;
+}
