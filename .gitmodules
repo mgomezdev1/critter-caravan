@@ -1,6 +1,8 @@
 [submodule "client"]
 	path = client
 	url = https://github.com/mgomezdev1/critter-caravan-client.git
+	branch = main
 [submodule "server"]
 	path = server
 	url = https://github.com/mgomezdev1/critter-caravan-server.git
+	branch = main
