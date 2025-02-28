@@ -8,6 +8,6 @@ If you have already cloned the repository without submodules, use `git submodule
 
 # Running Critter Caravan
 
-You will find the instructions to run each of the submodules in their respective READMEs. But as a quick note; you will need *PHP v8 and Laravel v11* to run the Server, and you will need *Unity v6* to run the client.
+You will find the instructions to run each of the submodules in their respective READMEs. But as a quick note; you will need **PHP v8** and **Laravel v11** to run the server, and you will need **Unity v6** to run the client.
 
-We do not currently distribute native executables for either of the submodules.
+We do not currently distribute precompiled executables for either of the submodules.
