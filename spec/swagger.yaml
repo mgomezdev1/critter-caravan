@@ -1,37 +1,40 @@
-openapi: "3.0.1"
+openapi: 3.0.1
 info:
   title: Critter Caravan API
-  version: "1.0.0"
-  description: |
-    The Critter Caravan API allows you to interact with the backend service for the Critter Caravan video game, granting you access to level and user management for the game data. It is meant to be used by the game client itself to access or store information persistently.
+  version: 1.0.0
+  description: >
+    The Critter Caravan API allows you to interact with the backend service for
+    the Critter Caravan video game, granting you access to level and user
+    management for the game data. It is meant to be used by the game client
+    itself to access or store information persistently.
+
 
     ### Features include:
 
-    * Registering users and Authentication
-    * Updating user data
-    * Fetching levels using a pagination interface with filter and sorting options
-    * Uploading and updating custom levels
 
+    * Registering users and Authentication
+
+    * Updating user data
+
+    * Fetching levels using a pagination interface with filter and sorting
+    options
+
+    * Uploading and updating custom levels
   license:
     name: MIT License
     url: https://opensource.org/license/mit
-
 servers:
   - url: http://127.0.0.1:8000
     description: Backend Server
-
   - url: mysql://127.0.0.1:3306
     description: The MySQL Database for the backend
-
 defaultContentType: application/json
-
 components:
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-
   schemas:
     User:
       type: object
@@ -49,7 +52,6 @@ components:
         avatar:
           type: string
           nullable: true
-
     UserForUpdate:
       type: object
       properties:
@@ -59,7 +61,6 @@ components:
           type: string
         password:
           type: string
-
     LevelForUpdate:
       type: object
       properties:
@@ -75,18 +76,16 @@ components:
           nullable: true
         world:
           type: string
-
     LevelForCreate:
       allOf:
-        - $ref: "#/components/schemas/LevelForUpdate"
+        - $ref: '#/components/schemas/LevelForUpdate'
         - required:
             - name
             - private
             - world
-
     Level:
       allOf:
-        - $ref: "#/components/schemas/LevelForUpdate"
+        - $ref: '#/components/schemas/LevelForUpdate'
         - properties:
             id:
               type: string
@@ -109,7 +108,6 @@ components:
               type: integer
             world:
               type: string
-
     LevelSearchQueryParams:
       type: object
       properties:
@@ -136,7 +134,6 @@ components:
         max_verification:
           type: integer
           default: -1
-
     PaginatedLevel:
       type: object
       properties:
@@ -179,13 +176,12 @@ components:
         data:
           type: array
           items:
-            $ref: "#/components/schemas/Level"
-
+            $ref: '#/components/schemas/Level'
     SessionData:
       type: object
       properties:
         user:
-          $ref: "#/components/schemas/User"
+          $ref: '#/components/schemas/User'
         token:
           type: string
         token_type:
@@ -193,7 +189,6 @@ components:
         expires:
           type: string
           format: date-time
-
   responses:
     BadRequest:
       description: Bad Request
@@ -208,7 +203,6 @@ components:
                 type: object
                 additionalProperties:
                   type: string
-
     Unauthorized:
       description: Unauthorized
       content:
@@ -218,7 +212,6 @@ components:
             properties:
               message:
                 type: string
-
     Forbidden:
       description: Forbidden
       content:
@@ -228,7 +221,6 @@ components:
             properties:
               message:
                 type: string
-
     NotFound:
       description: Not Found
       content:
@@ -238,7 +230,6 @@ components:
             properties:
               message:
                 type: string
-
     Conflict:
       description: Conflict
       content:
@@ -248,27 +239,24 @@ components:
             properties:
               message:
                 type: string
-
   parameters:
     LevelSearchQueryParams:
       name: LevelSearchQueryParams
       in: query
       required: false
       schema:
-        $ref: "#/components/schemas/LevelSearchQueryParams"
-
+        $ref: '#/components/schemas/LevelSearchQueryParams'
   examples:
     LevelSearchExample:
       summary: Example level search query params
       value:
         per_page: 10
-        sort: "upload_date"
+        sort: upload_date
         sort_asc: true
-        author: "123"
-        category: "puzzle"
+        author: '123'
+        category: puzzle
         min_verification: 0
         max_verification: 5
-
 paths:
   /api/auth/me:
     get:
@@ -276,55 +264,56 @@ paths:
       operationId: getCurrentUser
       security:
         - BearerAuth: []
-      tags: [Auth]
+      tags:
+        - Auth
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
-        "401":
+                $ref: '#/components/schemas/User'
+        '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Unauthorized"
-
+                $ref: '#/components/responses/Unauthorized'
   /api/auth/register:
     post:
       summary: Register a new user
       operationId: registerUser
-      tags: [Auth]
+      tags:
+        - Auth
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/User"
+              $ref: '#/components/schemas/User'
             example:
               username: newUser
               email: newuser@example.com
               password: password123
       responses:
-        "200":
+        '200':
           description: Successfully registered
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
-        "400":
+                $ref: '#/components/schemas/User'
+        '400':
           description: Bad request due to validation errors
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/BadRequest"
-
+                $ref: '#/components/responses/BadRequest'
   /api/auth/login:
     post:
       summary: Login a user and receive a JWT token
       operationId: loginUser
-      tags: [Auth]
+      tags:
+        - Auth
       requestBody:
         required: true
         content:
@@ -332,86 +321,87 @@ paths:
             schema:
               type: object
               properties:
-                username:
+                email:
                   type: string
                 password:
                   type: string
             example:
-              username: user123
+              email: user123
               password: password123
       responses:
-        "200":
+        '200':
           description: Successfully logged in and received JWT token
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionData"
-        "401":
+                $ref: '#/components/schemas/SessionData'
+        '401':
           description: Invalid credentials
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Unauthorized"
-
+                $ref: '#/components/responses/Unauthorized'
   /api/auth/refresh:
     post:
       summary: Refresh the authentication token
       operationId: refreshToken
       security:
         - BearerAuth: []
-      tags: [Auth]
+      tags:
+        - Auth
       responses:
-        "200":
+        '200':
           description: Successfully refreshed the token
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionData"
-        "401":
+                $ref: '#/components/schemas/SessionData'
+        '401':
           description: Unauthorized, invalid token
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Unauthorized"
-
+                $ref: '#/components/responses/Unauthorized'
   /api/auth/logout:
     post:
       summary: Logout the current user and invalidate the token
       operationId: logoutUser
       security:
         - BearerAuth: []
-      tags: [Auth]
+      tags:
+        - Auth
       responses:
-        "200":
+        '200':
           description: Successfully logged out
-        "401":
+        '401':
           description: Unauthorized, no token provided
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Unauthorized"
-        "404":
+                $ref: '#/components/responses/Unauthorized'
+        '404':
           description: Token not found
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/NotFound"
+                $ref: '#/components/responses/NotFound'
   /api/users:
     get:
       summary: Get all users
       operationId: getUsers
       security:
         - BearerAuth: []
-      tags: [Users]
+      tags:
+        - Users
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/User"
+                  $ref: '#/components/schemas/User'
   /api/users/{userId}:
     get:
       summary: Get user details by ID
@@ -424,32 +414,33 @@ paths:
             type: string
       security:
         - BearerAuth: []
-      tags: [Users]
+      tags:
+        - Users
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
-        "401":
+                $ref: '#/components/schemas/User'
+        '401':
           description: Unauthorized, no token provided
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Unauthorized"
-        "403":
+                $ref: '#/components/responses/Unauthorized'
+        '403':
           description: Forbidden, user does not have access
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Forbidden"
-        "404":
+                $ref: '#/components/responses/Forbidden'
+        '404':
           description: User not found
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/NotFound"
+                $ref: '#/components/responses/NotFound'
     delete:
       summary: Delete a user (admin only)
       operationId: deleteUser
@@ -461,28 +452,29 @@ paths:
             type: string
       security:
         - BearerAuth: []
-      tags: [Users]
+      tags:
+        - Users
       responses:
-        "200":
+        '200':
           description: User deleted successfully
-        "401":
+        '401':
           description: Unauthorized, no valid token provided
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Unauthorized"
-        "403":
+                $ref: '#/components/responses/Unauthorized'
+        '403':
           description: Forbidden, only admin can delete
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Forbidden"
-        "404":
+                $ref: '#/components/responses/Forbidden'
+        '404':
           description: User not found
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/NotFound"
+                $ref: '#/components/responses/NotFound'
     put:
       summary: Update a User
       operationId: updateUser
@@ -499,98 +491,99 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserForUpdate"
-      tags: [Users]
+              $ref: '#/components/schemas/UserForUpdate'
+      tags:
+        - Users
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
-        "401":
+                $ref: '#/components/schemas/User'
+        '401':
           description: Unauthorized, no token provided
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Unauthorized"
-        "403":
+                $ref: '#/components/responses/Unauthorized'
+        '403':
           description: Forbidden, user must be admin or target user
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Forbidden"
-        "404":
+                $ref: '#/components/responses/Forbidden'
+        '404':
           description: User not found
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/NotFound"
-        "409":
+                $ref: '#/components/responses/NotFound'
+        '409':
           description: Conflict, a user with the given email already exists
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Conflict"
-
+                $ref: '#/components/responses/Conflict'
   /api/levels:
     get:
       summary: Get a paginated list of levels
       operationId: getLevels
       parameters:
-        - $ref: "#/components/parameters/LevelSearchQueryParams"
-      tags: [Levels]
+        - $ref: '#/components/parameters/LevelSearchQueryParams'
+      tags:
+        - Levels
       responses:
-        "200":
+        '200':
           description: Successful response, paginated list of levels
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PaginatedLevel"
-        "400":
+                $ref: '#/components/schemas/PaginatedLevel'
+        '400':
           description: Bad request, invalid query parameters
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/BadRequest"
-
+                $ref: '#/components/responses/BadRequest'
     post:
       summary: Create a level
       operationId: createLevel
       security:
         - BearerAuth: []
-      tags: [Levels]
+      tags:
+        - Levels
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LevelForCreate"
+              $ref: '#/components/schemas/LevelForCreate'
       responses:
-        "201":
+        '201':
           description: Level created successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Level"
-        "401":
+                $ref: '#/components/schemas/Level'
+        '401':
           description: Unauthorized, no valid token provided
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Unauthorized"
-        "403":
+                $ref: '#/components/responses/Unauthorized'
+        '403':
           description: Forbidden, the user is not authorized to modify the level
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Forbidden"
-
+                $ref: '#/components/responses/Forbidden'
   /api/levels/{levelId}:
     get:
       summary: Get details of a specific level by ID
       operationId: getLevelById
-      tags: [Levels]
+      tags:
+        - Levels
       parameters:
         - name: levelId
           in: path
@@ -598,73 +591,73 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Level"
-        "401":
+                $ref: '#/components/schemas/Level'
+        '401':
           description: Unauthorized, no token provided or level is private
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Unauthorized"
-        "403":
+                $ref: '#/components/responses/Unauthorized'
+        '403':
           description: Forbidden, the level is private and the user is not the author
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Forbidden"
-        "404":
+                $ref: '#/components/responses/Forbidden'
+        '404':
           description: Level not found
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/NotFound"
-
+                $ref: '#/components/responses/NotFound'
     put:
       summary: Update a level
       operationId: updateLevel
       security:
         - BearerAuth: []
-      tags: [Levels]
+      tags:
+        - Levels
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LevelForUpdate"
+              $ref: '#/components/schemas/LevelForUpdate'
       responses:
-        "200":
+        '200':
           description: Level updated successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Level"
-        "401":
+                $ref: '#/components/schemas/Level'
+        '401':
           description: Unauthorized, no token provided
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Unauthorized"
-        "403":
+                $ref: '#/components/responses/Unauthorized'
+        '403':
           description: Forbidden, the user is not authorized to modify the level
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Forbidden"
-        "404":
+                $ref: '#/components/responses/Forbidden'
+        '404':
           description: Level not found
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/NotFound"
-
+                $ref: '#/components/responses/NotFound'
     delete:
       summary: Delete a level by ID
       operationId: deleteLevelById
-      tags: [Levels]
+      tags:
+        - Levels
       security:
         - BearerAuth: []
       parameters:
@@ -674,23 +667,23 @@ paths:
           schema:
             type: string
       responses:
-        "204":
+        '204':
           description: Successful response with no content
-        "401":
+        '401':
           description: Unauthorized, no token provided or level is private
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Unauthorized"
-        "403":
+                $ref: '#/components/responses/Unauthorized'
+        '403':
           description: Forbidden, the user is not authorized to delete the level
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/Forbidden"
-        "404":
+                $ref: '#/components/responses/Forbidden'
+        '404':
           description: Level not found
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/NotFound"
+                $ref: '#/components/responses/NotFound'
